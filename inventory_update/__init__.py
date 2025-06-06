@@ -1,0 +1,2 @@
+"""Inventory update package."""
+
