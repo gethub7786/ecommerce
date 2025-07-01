@@ -27,15 +27,6 @@ class CwrSupplier(Supplier):
         self.set_credential('base_url', base_url)
         print('Credentials saved.')
 
-    def _get_last_time(self) -> int:
-        saved = self.get_credential('last_unix_time')
-        if saved is not None:
-            return int(saved)
-        return int((datetime.now() - timedelta(hours=DEFAULT_LOOKBACK_HOURS)).timestamp())
-
-    def _set_last_time(self, ts: int) -> None:
-        self.set_credential('last_unix_time', str(ts))
-
     def _get_last_ohtime(self) -> int:
         saved = self.get_credential('last_ohtime')
         if saved is not None:
@@ -51,20 +42,8 @@ class CwrSupplier(Supplier):
             logging.warning('CWR feed URL missing')
             print('Missing feed URL')
             return
-        mapping_file = self.get_credential('mapping_file')
-        output = self.get_credential('output', 'cwr_inventory.txt')
-
-        since = self._get_last_time()
-        url = build_url(base_url, since)
-        try:
-            rows = download_inventory(url)
-            if mapping_file:
-                rows = merge_mapping(rows, Path(mapping_file))
-            save_inventory(rows, Path(output))
-            logging.info('Saved CWR inventory to %s', output)
-            self._set_last_time(int(datetime.now().timestamp()))
-        except Exception as exc:
-            logging.exception('Failed to fetch CWR inventory: %s', exc)
+        # Use the inventory-only feed as the primary update
+        self.fetch_inventory_stock()
 
     def fetch_inventory_full(self) -> None:
         """Force download the entire inventory feed and reset the timestamp."""
@@ -82,7 +61,6 @@ class CwrSupplier(Supplier):
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
-            self._set_last_time(int(datetime.now().timestamp()))
         except Exception as exc:
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 

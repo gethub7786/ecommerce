@@ -3,6 +3,7 @@
 import csv
 import ssl
 import urllib.request
+import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -10,10 +11,10 @@ from pathlib import Path
 def build_url(base_url: str, since: int, *, inventory_only: bool = False) -> str:
     """Construct the CWR feed URL from the base URL."""
     if inventory_only:
-        fields = "sku,qty,upc,mfgn,qtynj,qtyfl"
+        fields = "sku,qty,qtynj,qtyfl,upc,mfgn"
         param = "ohtime"
     else:
-        fields = "sku,price,qty,upc,qtyfl,qtynj,mfgn"
+        fields = "sku,price,qty,qtynj,qtyfl,upc,mfgn,sdesc"
         param = "time"
     if base_url.endswith("&"):
         prefix = base_url.rstrip("&")
@@ -22,34 +23,50 @@ def build_url(base_url: str, since: int, *, inventory_only: bool = False) -> str
     return f"{prefix}&{param}={since}&fields={fields}"
 
 
-def download_inventory(url: str, *, inventory_only: bool = False) -> list:
-    """Download CSV data from CWR using the provided URL."""
-    context = ssl.create_default_context()
-    context.check_hostname = False
-    context.verify_mode = ssl.CERT_NONE
-    with urllib.request.urlopen(url, context=context) as resp:
-        if inventory_only:
-            fieldnames = [
-                "SKU",
-                "Quantity",
-                "UPC/EAN",
-                "Manufacturer",
-                "qtynj",
-                "qtyfl",
-            ]
-        else:
-            fieldnames = [
-                "SKU",
-                "Price",
-                "Quantity",
-                "UPC/EAN",
-                "qtyfl",
-                "qtynj",
-                "Manufacturer",
-            ]
-        return list(
-            csv.DictReader((line.decode("utf-8") for line in resp), fieldnames=fieldnames)
-        )
+def download_inventory(url: str, *, inventory_only: bool = False, retries: int = 1) -> list:
+    """Download CSV data from CWR using the provided URL.
+
+    If a network error occurs, the request is retried once before raising."""
+    attempt = 0
+    while True:
+        try:
+            context = ssl.create_default_context()
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            with urllib.request.urlopen(url, context=context, timeout=30) as resp:
+                if inventory_only:
+                    fieldnames = [
+                        "SKU",
+                        "Quantity",
+                        "qtynj",
+                        "qtyfl",
+                        "UPC/EAN",
+                        "Manufacturer",
+                    ]
+                else:
+                    fieldnames = [
+                        "SKU",
+                        "Price",
+                        "Quantity",
+                        "qtynj",
+                        "qtyfl",
+                        "UPC/EAN",
+                        "Manufacturer",
+                        "sdesc",
+                    ]
+                rows = list(
+                    csv.DictReader((line.decode("utf-8") for line in resp), fieldnames=fieldnames)
+                )
+                if rows and rows[0]["SKU"].lower() == "sku":
+                    rows = rows[1:]
+                if not rows:
+                    logging.warning("CWR feed returned no rows")
+                return rows
+        except Exception as exc:
+            if attempt < retries:
+                attempt += 1
+                continue
+            raise
 
 
 def merge_mapping(rows: list, mapping_path: Path) -> list:
