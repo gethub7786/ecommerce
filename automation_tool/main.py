@@ -31,10 +31,11 @@ SUPPLIERS = {
 # Available schedule intervals (label, seconds)
 SCHEDULES = {
     '0': ("1 minute", 60),
-    '1': ("5 minutes", 5 * 60),
-    '2': ("1 hour", 60 * 60),
-    '3': ("1 day", 24 * 60 * 60),
-    '4': ("1 week", 7 * 24 * 60 * 60),
+    '1': ("15 minutes", 15 * 60),
+    '2': ("30 minutes", 30 * 60),
+    '3': ("45 minutes", 45 * 60),
+    '4': ("1 hour", 60 * 60),
+    '5': ("1 week", 7 * 24 * 60 * 60),
 }
 
 catalog_jobs = {}
