@@ -105,6 +105,17 @@ class SeawideSupplier(Supplier):
             if total:
                 print('\rDownload complete      ')
             logging.info('Downloaded Seawide inventory update to %s', output)
+
+            # parse file to update catalog
+            try:
+                with open(output, newline='') as f:
+                    rows = list(csv.DictReader(f))
+                if rows:
+                    catalog.save_rows(self.name, rows)
+                    logging.info('Updated %s catalog from FTP download', self.name)
+            except Exception as exc:
+                logging.warning('Failed to parse downloaded inventory: %s', exc)
+
         except Exception as exc:
             logging.exception('Failed to fetch Seawide inventory: %s', exc)
             print('Error downloading Seawide inventory via FTP:', exc)

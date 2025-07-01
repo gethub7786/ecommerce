@@ -184,6 +184,17 @@ class KeystoneSupplier(Supplier):
             if total:
                 print('\rDownload complete      ')
             logging.info('Downloaded Keystone inventory update via FTP to %s', output)
+
+            # parse downloaded CSV into the catalog store
+            try:
+                with open(output, newline='') as f:
+                    rows = list(csv.DictReader(f))
+                if rows:
+                    catalog.save_rows(self.name, rows)
+                    logging.info('Updated %s catalog from FTP download', self.name)
+            except Exception as exc:
+                logging.warning('Failed to parse downloaded inventory: %s', exc)
+
         except Exception as exc:
             logging.exception('Failed to fetch Keystone FTP inventory: %s', exc)
             print('Error downloading Keystone inventory via FTP:', exc)
