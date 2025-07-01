@@ -16,7 +16,7 @@ you'll see a **Set FTP Credentials** tab where you enter `FTP Host`, `FTP User`,
 `explicit-ftps`). Keystone defaults to port `990` with `implicit-ftps`, but you can
 change these values when configuring the credentials. You can also specify a
 default `Remote Folder` and `Remote File` used when downloading inventory from
-FTP. Use **Test Connection** to verify the FTP access. For SOAP access provide
+FTP. Passive mode is enabled automatically for all FTP connections. Use **Test Connection** to verify the FTP access. For SOAP access provide
 `account_number` and `security_key` via **Set Credential**. Seawide works the
 same way but uses an `api_key`.
 All credentials are stored locally until you change them.
