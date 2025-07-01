@@ -26,6 +26,24 @@ def _parse_dataset(xml_data: bytes) -> list:
         rows.append(row)
     return rows
 
+
+def _soap_error_message(xml_data: bytes) -> str | None:
+    """Return a user friendly SOAP error if present in the response."""
+    text = xml_data.decode("utf-8", errors="ignore")
+    if "You are not authorized to use this function" in text:
+        return (
+            "Insufficient permissions. The account number/security key/IP address "
+            "combination provided has not been granted access to the Electronic "
+            "Order API.\nSOAP exception: \"*** You are not authorized to use "
+            "this function ***\""
+        )
+    if "Illegal use of this web service" in text:
+        return (
+            "Invalid credentials. The security key provided is invalid.\nSOAP "
+            "exception: \"*** Illegal use of this web service !!! ***\""
+        )
+    return None
+
 class KeystoneSupplier(Supplier):
     """Keystone Automotive supplier implementation."""
     def __init__(self):
@@ -105,9 +123,14 @@ class KeystoneSupplier(Supplier):
                     writer.writerows(rows)
                 logging.info('Saved Keystone inventory update to %s', output)
                 return True
-            msg = 'No data returned from Keystone update'
-            logging.warning(msg)
-            print(msg)
+            err = _soap_error_message(xml_data)
+            if err:
+                logging.warning('Keystone SOAP error: %s', err)
+                print('Error Description', err)
+            else:
+                msg = 'No data returned from Keystone update'
+                logging.warning(msg)
+                print(msg)
         except Exception as exc:
             logging.exception('Failed to fetch Keystone inventory: %s', exc)
             print('Error fetching Keystone inventory via SOAP:', exc)
@@ -210,9 +233,14 @@ class KeystoneSupplier(Supplier):
                     writer.writerows(rows)
                 logging.info('Saved Keystone full inventory to %s', output)
             else:
-                msg = 'No data returned from Keystone'
-                logging.warning(msg)
-                print(msg)
+                err = _soap_error_message(xml_data)
+                if err:
+                    logging.warning('Keystone SOAP error: %s', err)
+                    print('Error Description', err)
+                else:
+                    msg = 'No data returned from Keystone'
+                    logging.warning(msg)
+                    print(msg)
         except Exception as exc:
             logging.exception('Failed to fetch Keystone full inventory: %s', exc)
             print('Error fetching Keystone full inventory:', exc)

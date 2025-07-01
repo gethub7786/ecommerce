@@ -34,6 +34,10 @@ The tool works without external dependencies and stores configuration locally.
 All inventory actions are logged to `automation.log`. When a SOAP or FTP request
 fails, the error message is printed to the console and recorded in the log so
 you can diagnose connection issues.
+If a SOAP request succeeds but returns no data, the response is checked for
+common fault messages. Errors like `*** You are not authorized to use this
+function ***` or `*** Illegal use of this web service !!! ***` will be shown in
+the console and saved to the log for easier debugging.
 
 ### Running
 

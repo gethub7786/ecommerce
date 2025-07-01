@@ -7,7 +7,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from .base import Supplier, SFTPWrapper
 from . import catalog
-from .keystone import _parse_dataset
+from .keystone import _parse_dataset, _soap_error_message
 
 class SeawideSupplier(Supplier):
     """Seawide supplier implementation."""
@@ -240,9 +240,14 @@ class SeawideSupplier(Supplier):
                     writer.writerows(rows)
                 logging.info('Saved Seawide inventory update to %s', output)
                 return True
-            msg = 'No data returned from Seawide update'
-            logging.warning(msg)
-            print(msg)
+            err = _soap_error_message(xml_data)
+            if err:
+                logging.warning('Seawide SOAP error: %s', err)
+                print('Error Description', err)
+            else:
+                msg = 'No data returned from Seawide update'
+                logging.warning(msg)
+                print(msg)
         except Exception as exc:
             logging.exception('Failed to fetch Seawide SOAP update: %s', exc)
             print('Error fetching Seawide inventory via SOAP:', exc)
@@ -277,9 +282,14 @@ class SeawideSupplier(Supplier):
                     writer.writerows(rows)
                 logging.info('Saved Seawide full inventory to %s', output)
             else:
-                msg = 'No data returned from Seawide full inventory'
-                logging.warning(msg)
-                print(msg)
+                err = _soap_error_message(xml_data)
+                if err:
+                    logging.warning('Seawide SOAP error: %s', err)
+                    print('Error Description', err)
+                else:
+                    msg = 'No data returned from Seawide full inventory'
+                    logging.warning(msg)
+                    print(msg)
         except Exception as exc:
             logging.exception('Failed to fetch Seawide SOAP full inventory: %s', exc)
             print('Error fetching Seawide full inventory via SOAP:', exc)
