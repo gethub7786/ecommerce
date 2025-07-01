@@ -3,7 +3,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import csv
 import os
-from .base import Supplier, SFTPWrapper
+from .base import Supplier, SFTPWrapper, ImplicitFTP_TLS
 from . import catalog
 
 
@@ -271,13 +271,15 @@ class KeystoneSupplier(Supplier):
                 ftp.set_pasv(True)
                 return ftp
             elif protocol == "implicit-ftps":
-                ftp = ftplib.FTP_TLS()
-                ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
+                ftp = ImplicitFTP_TLS()
                 ftp.connect(host, port, timeout=30)
-                context = ssl.SSLContext(ftp.ssl_version)
-                ftp.sock = context.wrap_socket(ftp.sock, server_hostname=host)
-                ftp.file = ftp.sock.makefile("r", encoding=ftp.encoding)
-                ftp.login(user, password, secure=False)
+                try:
+                    ftp.login(user, password)
+                except ftplib.error_perm as exc:
+                    if "530" in str(exc):
+                        print("Login failed (530). Credentials incorrect.")
+                        return None
+                    raise
                 ftp.prot_p()
                 ftp.set_pasv(True)
                 return ftp

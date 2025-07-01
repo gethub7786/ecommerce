@@ -24,6 +24,29 @@ class SFTPWrapper:
     def quit(self) -> None:
         self._client.close()
 
+
+class ImplicitFTP_TLS:
+    """Simple adapter to start TLS immediately when connecting via FTPS."""
+
+    def __init__(self, *args, **kwargs):
+        import ftplib
+        self._ftp = ftplib.FTP_TLS(*args, **kwargs)
+
+    def __getattr__(self, item):
+        return getattr(self._ftp, item)
+
+    @property
+    def sock(self):
+        return self._ftp.sock
+
+    @sock.setter
+    def sock(self, value):
+        if value is not None:
+            import ssl
+            ctx = ssl.create_default_context()
+            value = ctx.wrap_socket(value)
+        self._ftp.sock = value
+
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
 
