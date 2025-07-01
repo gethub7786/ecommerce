@@ -8,7 +8,7 @@ This repository contains utilities for managing inventory data and simple suppli
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails.
 * **CWR** - downloads the CSV feed and optionally merges a SKU mapping. A force full inventory option resets the timestamp to 1970.
-* **Seawide** - the **primary** inventory method uses the SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) and falls back to FTP if the SOAP request fails.
+* **Seawide** - the **primary** inventory method uses the same Keystone SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) at `http://order.ekeystone.com/wselectronicorder/electronicorder.asmx` and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. In each supplier menu
 you'll see a **Set FTP Credentials** tab where you enter only `FTP User` and
@@ -19,8 +19,9 @@ and `Remote File`
 used when downloading inventory from FTP. If omitted, the folder defaults to
 `/` and the file to `Inventory.csv`. Passive mode is enabled automatically for
 all connections. Use **Test Connection** to verify the FTP access. For SOAP
-access provide `account_number` and `security_key` via **Set Credential**.
-Seawide works the same way but uses an `api_key`.
+access provide `account_number` and `security_key` via **Set Credential`.
+Seawide works the same way but uses an `api_key` against the same Keystone SOAP
+endpoint.
 All credentials are stored locally until you change them.
 
 When selecting **Fetch Inventory Update via FTP** for Keystone or Seawide, you

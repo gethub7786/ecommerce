@@ -9,6 +9,8 @@ from .base import Supplier, SFTPWrapper, ImplicitFTP_TLS
 from . import catalog
 from .keystone import _parse_dataset, _soap_error_message
 
+SOAP_URL = "http://order.ekeystone.com/wselectronicorder/electronicorder.asmx"
+
 # Fixed FTP connection details for Seawide
 HOST = "ftp.ekeystone.com"  # Seawide shares the same host
 PORT = 990  # implicit FTPS
@@ -194,20 +196,22 @@ class SeawideSupplier(Supplier):
     def _fetch_inventory_update_soap(self, account: str, key: str) -> bool:
         """Retrieve inventory updates via SOAP."""
         output = self.get_credential('output', 'seawide_inventory_update.csv')
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sea="http://seawide.com">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
-    <sea:GetInventoryUpdates>
-      <sea:Key>{key}</sea:Key>
-      <sea:FullAccountNo>{account}</sea:FullAccountNo>
-    </sea:GetInventoryUpdates>
+    <ekey:GetInventoryUpdates>
+      <ekey:Key>{key}</ekey:Key>
+      <ekey:FullAccountNo>{account}</ekey:FullAccountNo>
+    </ekey:GetInventoryUpdates>
   </soapenv:Body>
 </soapenv:Envelope>'''
         req = urllib.request.Request(
-            'https://api.seawide.com/inventory.asmx',
+            SOAP_URL,
             data=envelope.encode('utf-8'),
-            headers={'Content-Type': 'text/xml; charset=utf-8',
-                    'SOAPAction': 'http://seawide.com/GetInventoryUpdates'},
+            headers={
+                'Content-Type': 'text/xml; charset=utf-8',
+                'SOAPAction': 'http://eKeystone.com/GetInventoryUpdates',
+            },
         )
         try:
             with urllib.request.urlopen(req) as resp:
@@ -236,20 +240,22 @@ class SeawideSupplier(Supplier):
     def _fetch_inventory_full_soap(self, account: str, key: str) -> None:
         """Retrieve full inventory via SOAP."""
         output = self.get_credential('full_output', 'seawide_inventory_full.csv')
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sea="http://seawide.com">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
-    <sea:GetInventoryFull>
-      <sea:Key>{key}</sea:Key>
-      <sea:FullAccountNo>{account}</sea:FullAccountNo>
-    </sea:GetInventoryFull>
+    <ekey:GetInventoryFull>
+      <ekey:Key>{key}</ekey:Key>
+      <ekey:FullAccountNo>{account}</ekey:FullAccountNo>
+    </ekey:GetInventoryFull>
   </soapenv:Body>
 </soapenv:Envelope>'''
         req = urllib.request.Request(
-            'https://api.seawide.com/inventory.asmx',
+            SOAP_URL,
             data=envelope.encode('utf-8'),
-            headers={'Content-Type': 'text/xml; charset=utf-8',
-                    'SOAPAction': 'http://seawide.com/GetInventoryFull'},
+            headers={
+                'Content-Type': 'text/xml; charset=utf-8',
+                'SOAPAction': 'http://eKeystone.com/GetInventoryFull',
+            },
         )
         try:
             with urllib.request.urlopen(req) as resp:
@@ -286,20 +292,22 @@ class SeawideSupplier(Supplier):
         account = self.get_credential('account_number')
         key = self.get_credential('api_key')
         if account and key:
-            envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sea="http://seawide.com">
+            envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
-    <sea:GetInventoryUpdates>
-      <sea:Key>{key}</sea:Key>
-      <sea:FullAccountNo>{account}</sea:FullAccountNo>
-    </sea:GetInventoryUpdates>
+    <ekey:GetInventoryUpdates>
+      <ekey:Key>{key}</ekey:Key>
+      <ekey:FullAccountNo>{account}</ekey:FullAccountNo>
+    </ekey:GetInventoryUpdates>
   </soapenv:Body>
 </soapenv:Envelope>'''
             req = urllib.request.Request(
-                'https://api.seawide.com/inventory.asmx',
+                SOAP_URL,
                 data=envelope.encode('utf-8'),
-                headers={'Content-Type': 'text/xml; charset=utf-8',
-                        'SOAPAction': 'http://seawide.com/GetInventoryUpdates'},
+                headers={
+                    'Content-Type': 'text/xml; charset=utf-8',
+                    'SOAPAction': 'http://eKeystone.com/GetInventoryUpdates',
+                },
             )
             try:
                 with urllib.request.urlopen(req, timeout=10) as resp:
