@@ -27,6 +27,7 @@ class SFTPWrapper:
 
 import ftplib
 import ssl
+import socket
 
 
 class ImplicitFTP_TLS(ftplib.FTP_TLS):
@@ -36,13 +37,28 @@ class ImplicitFTP_TLS(ftplib.FTP_TLS):
         super().__init__(*args, **kwargs)
         self._host = None
 
-    def connect(self, host: str = "", port: int = 0, timeout: int | None = None):
-        self._host = host
-        resp = super().connect(host, port, timeout)
-        # Immediately wrap the socket in TLS for implicit FTPS
-        if self.sock is not None:
-            self.sock = self.context.wrap_socket(self.sock, server_hostname=self._host)
-        return resp
+    def connect(self, host: str = "", port: int = 0, timeout: int | None = None,
+                source_address=None):
+        """Connect and initiate TLS before any FTP commands."""
+        if host:
+            self.host = host
+        if port:
+            self.port = port
+        if timeout is not None and timeout != -999:
+            self.timeout = timeout
+        if source_address is not None:
+            self.source_address = source_address
+
+        self._host = self.host
+        sock = socket.create_connection(
+            (self.host, self.port), self.timeout,
+            source_address=self.source_address
+        )
+        self.af = sock.family
+        self.sock = self.context.wrap_socket(sock, server_hostname=self._host)
+        self.file = self.sock.makefile("r", encoding=self.encoding)
+        self.welcome = self.getresp()
+        return self.welcome
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
 os.makedirs(DATA_DIR, exist_ok=True)
