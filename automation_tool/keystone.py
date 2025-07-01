@@ -44,12 +44,12 @@ class KeystoneSupplier(Supplier):
         host = input('FTP Host: ')
         user = input('FTP User: ')
         password = input('FTP Password: ')
-        port = input('FTP Port (default 21): ') or '21'
+        port = input('FTP Port (default 990): ') or '990'
         protocol = (
             input(
-                'FTP Protocol (ftp/sftp/implicit-ftps/explicit-ftps, default explicit-ftps): '
+                'FTP Protocol (ftp/sftp/implicit-ftps/explicit-ftps, default implicit-ftps): '
             )
-            or 'explicit-ftps'
+            or 'implicit-ftps'
         )
         remote_dir = input('Remote Folder (optional): ')
         remote_file = input('Remote File (optional): ')
@@ -221,30 +221,35 @@ class KeystoneSupplier(Supplier):
         host = self.get_credential('ftp_host')
         user = self.get_credential('ftp_user')
         password = self.get_credential('ftp_password')
-        port = int(self.get_credential('ftp_port', 21))
-        protocol = self.get_credential('ftp_protocol', 'explicit-ftps').lower()
+        port = int(self.get_credential('ftp_port', 990))
+        protocol = self.get_credential('ftp_protocol', 'implicit-ftps').lower()
         if not host or not user or not password:
             print('Missing FTP credentials')
             return None
         try:
-            import ftplib
+            import ftplib, ssl
             if protocol in ('ftp',):
                 ftp = ftplib.FTP()
                 ftp.connect(host, port, timeout=10)
                 ftp.login(user, password)
+                ftp.set_pasv(True)
                 return ftp
             elif protocol in ('ftps', 'explicit-ftps'):
                 ftp = ftplib.FTP_TLS()
+                ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
                 ftp.connect(host, port, timeout=10)
                 ftp.login(user, password)
                 ftp.prot_p()
+                ftp.set_pasv(True)
                 return ftp
             elif protocol == 'implicit-ftps':
                 ftp = ftplib.FTP_TLS()
+                ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
                 ftp.connect(host, port, timeout=10)
                 ftp.auth()
                 ftp.login(user, password)
                 ftp.prot_p()
+                ftp.set_pasv(True)
                 return ftp
             elif protocol == 'sftp':
                 try:
