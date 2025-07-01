@@ -7,20 +7,19 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 
-BASE_URL = "https://cwrdistribution.com/feeds/productdownload.php"
-
-
-def build_url(feed_id: str, since: int, *, inventory_only: bool = False) -> str:
-    """Construct the CWR feed URL."""
+def build_url(base_url: str, since: int, *, inventory_only: bool = False) -> str:
+    """Construct the CWR feed URL from the base URL."""
     if inventory_only:
         fields = "sku,qty,upc,mfgn,qtynj,qtyfl"
         param = "ohtime"
     else:
         fields = "sku,price,qty,upc,qtyfl,qtynj,mfgn"
         param = "time"
-    return (
-        f"{BASE_URL}?id={feed_id}&version=3&format=csv&fields={fields}&{param}={since}"
-    )
+    if base_url.endswith("&"):
+        prefix = base_url.rstrip("&")
+    else:
+        prefix = base_url
+    return f"{prefix}&{param}={since}&fields={fields}"
 
 
 def download_inventory(url: str, *, inventory_only: bool = False) -> list:
@@ -78,8 +77,8 @@ def save_inventory(rows: list, output: Path):
             writer.writerow(r)
 
 
-def main(feed_id: str, since: int, mapping: Path, output: Path, *, inventory_only: bool = False):
-    url = build_url(feed_id, since, inventory_only=inventory_only)
+def main(base_url: str, since: int, mapping: Path, output: Path, *, inventory_only: bool = False):
+    url = build_url(base_url, since, inventory_only=inventory_only)
     rows = download_inventory(url, inventory_only=inventory_only)
     merged = merge_mapping(rows, mapping)
     save_inventory(merged, output)
@@ -89,10 +88,10 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="Process CWR inventory feed")
-    parser.add_argument('--feed-id', required=True, help='CWR feed ID')
+    parser.add_argument('--base-url', required=True, help='Base CWR feed URL without time/ohtime')
     parser.add_argument('--since', type=int, help='UNIX timestamp', default=int((datetime.now() - timedelta(hours=10)).timestamp()))
     parser.add_argument('--inventory-only', action='store_true', help='Use ohtime to get quantity changes only')
     parser.add_argument('--mapping', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
-    main(args.feed_id, args.since, args.mapping, args.output, inventory_only=args.inventory_only)
+    main(args.base_url, args.since, args.mapping, args.output, inventory_only=args.inventory_only)
