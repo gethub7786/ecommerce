@@ -2,7 +2,7 @@ import logging
 import os
 """Console entry point for the automation tool."""
 
-from automation_tool.suppliers import (
+from automation_tool import (
     KeystoneSupplier,
     CwrSupplier,
     SeawideSupplier,
