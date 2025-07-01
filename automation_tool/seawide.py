@@ -210,7 +210,7 @@ class SeawideSupplier(Supplier):
             data=envelope.encode('utf-8'),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
-                'SOAPAction': '"http://eKeystone.com/GetInventoryUpdates"',
+                'SOAPAction': 'http://eKeystone.com/GetInventoryUpdates',
             },
         )
         try:
@@ -254,7 +254,7 @@ class SeawideSupplier(Supplier):
             data=envelope.encode('utf-8'),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
-                'SOAPAction': '"http://eKeystone.com/GetInventoryFull"',
+                'SOAPAction': 'http://eKeystone.com/GetInventoryFull',
             },
         )
         try:
@@ -306,7 +306,7 @@ class SeawideSupplier(Supplier):
                 data=envelope.encode('utf-8'),
                 headers={
                     'Content-Type': 'text/xml; charset=utf-8',
-                    'SOAPAction': '"http://eKeystone.com/GetInventoryUpdates"',
+                    'SOAPAction': 'http://eKeystone.com/GetInventoryUpdates',
                 },
             )
             try:
