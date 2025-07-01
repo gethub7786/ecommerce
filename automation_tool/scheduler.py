@@ -23,6 +23,7 @@ class RepeatedTimer:
 
     def start(self):
         if not self.is_running:
+            logging.info("Starting timer for %s every %s seconds", self.function.__name__, self.interval)
             self._timer = threading.Timer(self.interval, self._run)
             self._timer.daemon = True
             self._timer.start()
@@ -31,4 +32,5 @@ class RepeatedTimer:
     def stop(self):
         if self._timer:
             self._timer.cancel()
+        logging.info("Stopped timer for %s", self.function.__name__)
         self.is_running = False

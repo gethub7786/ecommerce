@@ -28,8 +28,7 @@ python automation_tool/main.py
 
 From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.
 For each supplier you may test the connection and schedule catalog downloads at
-the desired interval. Catalog entries can later be removed from the "Manage
-Catalog" option.
+intervals of **5 minutes**, **1 hour**, **1 day** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
 
 ## Inventory Processor
 

@@ -22,10 +22,12 @@ SUPPLIERS = {
     '3': SeawideSupplier(),
 }
 
+# Available schedule intervals (label, seconds)
 SCHEDULES = {
-    '1': 300,      # 5 minutes
-    '2': 3600,     # 1 hour
-    '3': 86400,    # 1 day
+    '1': ("5 minutes", 5 * 60),
+    '2': ("1 hour", 60 * 60),
+    '3': ("1 day", 24 * 60 * 60),
+    '4': ("1 week", 7 * 24 * 60 * 60),
 }
 
 catalog_jobs = {}
@@ -97,20 +99,20 @@ def show_supplier_menu(key):
             supplier.fetch_inventory()
         elif choice == '3':
             print("Select schedule interval:")
-            for n, sec in SCHEDULES.items():
-                print(f"{n}. {sec} seconds")
+            for n, (label, _) in SCHEDULES.items():
+                print(f"{n}. {label}")
             opt = input("Choice: ")
             if opt in SCHEDULES:
-                schedule_supplier(supplier, SCHEDULES[opt])
+                schedule_supplier(supplier, SCHEDULES[opt][1])
         elif hasattr(supplier, 'fetch_catalog') and choice == '4':
             supplier.fetch_catalog()
         elif hasattr(supplier, 'fetch_catalog') and choice == '5':
             print("Select schedule interval:")
-            for n, sec in SCHEDULES.items():
-                print(f"{n}. {sec} seconds")
+            for n, (label, _) in SCHEDULES.items():
+                print(f"{n}. {label}")
             opt = input("Choice: ")
             if opt in SCHEDULES:
-                schedule_catalog(supplier, SCHEDULES[opt])
+                schedule_catalog(supplier, SCHEDULES[opt][1])
         elif hasattr(supplier, 'fetch_catalog') and choice == '6':
             show_catalog_menu(supplier)
         elif hasattr(supplier, 'test_connection') and choice == '7':
