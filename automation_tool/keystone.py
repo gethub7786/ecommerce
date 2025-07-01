@@ -32,7 +32,7 @@ class KeystoneSupplier(Supplier):
         super().__init__('Keystone', 'keystone.json')
 
     # Primary method: SOAP API inventory tracking
-    def fetch_inventory_primary(self) -> None:
+    def fetch_inventory_primary(self) -> bool:
         """Retrieve incremental inventory with warehouse breakdown."""
         account = self.get_credential('account_number')
         key = self.get_credential('security_key')
@@ -69,14 +69,17 @@ class KeystoneSupplier(Supplier):
                     writer.writeheader()
                     writer.writerows(rows)
                 logging.info('Saved Keystone inventory update to %s', output)
-            else:
-                logging.warning('No data returned from Keystone update')
+                return True
+            logging.warning('No data returned from Keystone update')
         except Exception as exc:
             logging.exception('Failed to fetch Keystone inventory: %s', exc)
+        return False
 
     # Backwards compatible alias
     def fetch_inventory(self) -> None:
-        self.fetch_inventory_primary()
+        if not self.fetch_inventory_primary():
+            logging.info('Falling back to Keystone FTP inventory update')
+            self.fetch_inventory_secondary()
 
     # Secondary method: FTP download
     def fetch_inventory_secondary(self) -> None:

@@ -14,17 +14,19 @@ class SeawideSupplier(Supplier):
         super().__init__('Seawide', 'seawide.json')
 
     # Primary method: SOAP API inventory tracking
-    def fetch_inventory_primary(self) -> None:
+    def fetch_inventory_primary(self) -> bool:
         account = self.get_credential('account_number')
         key = self.get_credential('api_key')
         if not account or not key:
             logging.warning('Seawide API credentials missing')
             return
-        self._fetch_inventory_update_soap(account, key)
+        return self._fetch_inventory_update_soap(account, key)
 
     # Backwards compatible alias
     def fetch_inventory(self) -> None:
-        self.fetch_inventory_primary()
+        if not self.fetch_inventory_primary():
+            logging.info('Falling back to Seawide FTP inventory update')
+            self.fetch_inventory_secondary()
 
     # Secondary method: FTP download
     def fetch_inventory_secondary(self) -> None:
@@ -84,7 +86,7 @@ class SeawideSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch Seawide full inventory: %s', exc)
 
-    def _fetch_inventory_update_soap(self, account: str, key: str) -> None:
+    def _fetch_inventory_update_soap(self, account: str, key: str) -> bool:
         """Retrieve inventory updates via SOAP."""
         output = self.get_credential('output', 'seawide_inventory_update.csv')
         envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sea="http://seawide.com">
@@ -112,10 +114,11 @@ class SeawideSupplier(Supplier):
                     writer.writeheader()
                     writer.writerows(rows)
                 logging.info('Saved Seawide inventory update to %s', output)
-            else:
-                logging.warning('No data returned from Seawide update')
+                return True
+            logging.warning('No data returned from Seawide update')
         except Exception as exc:
             logging.exception('Failed to fetch Seawide SOAP update: %s', exc)
+        return False
 
     def _fetch_inventory_full_soap(self, account: str, key: str) -> None:
         """Retrieve full inventory via SOAP."""

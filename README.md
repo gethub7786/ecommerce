@@ -6,9 +6,9 @@ This repository contains utilities for managing inventory data and simple suppli
 
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
-* **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates`. A **secondary** FTP method can download the same update file when FTP credentials are supplied.
+* **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails.
 * **CWR** - downloads the CSV feed and optionally merges a SKU mapping. A force full inventory option resets the timestamp to 1970.
-* **Seawide** - the **primary** inventory method uses the SOAP API (`GetInventoryFull` and `GetInventoryUpdates`). A **secondary** FTP method can download the same files when FTP credentials are supplied.
+* **Seawide** - the **primary** inventory method uses the SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. Provide `ftp_host`,
 `ftp_user`, `ftp_password`, `ftp_port` and `ftp_protocol` through the menu
