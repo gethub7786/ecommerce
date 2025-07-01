@@ -10,7 +10,7 @@ from . import catalog
 from .keystone import _parse_dataset, _soap_error_message
 
 # Fixed FTP connection details for Seawide
-HOST = "ftp.seawide.com"
+HOST = "ftp.ekeystone.com"  # Seawide shares the same host
 PORT = 990  # implicit FTPS
 
 class SeawideSupplier(Supplier):
