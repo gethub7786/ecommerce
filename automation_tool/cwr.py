@@ -8,7 +8,6 @@ from .base import Supplier
 from . import catalog
 from inventory_processor import (
     download_inventory,
-    merge_mapping,
     save_inventory,
 )
 
@@ -73,7 +72,6 @@ class CwrSupplier(Supplier):
 
     def fetch_inventory_full(self) -> None:
         """Force download the entire inventory feed and reset the timestamp."""
-        mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('full_output', 'cwr_inventory_full.txt')
         try:
             url = self._full_url()
@@ -84,8 +82,6 @@ class CwrSupplier(Supplier):
             if len(rows) == 0:
                 logging.warning('CWR full feed returned headers only')
                 return
-            if mapping_file:
-                rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
             # Reset ohtime so the next stock update fetches everything
@@ -95,7 +91,6 @@ class CwrSupplier(Supplier):
 
     def fetch_inventory_stock(self) -> None:
         """Fetch inventory quantities using ohtime."""
-        mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('stock_output', 'cwr_inventory_stock.txt')
 
         since = self._get_last_ohtime()
@@ -108,8 +103,6 @@ class CwrSupplier(Supplier):
             if len(rows) == 0:
                 logging.warning('CWR stock feed returned headers only')
                 return
-            if mapping_file:
-                rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR stock inventory to %s', output)
             self._set_last_ohtime(int(datetime.now().timestamp()))
@@ -138,15 +131,12 @@ class CwrSupplier(Supplier):
             url = self._full_url()
         except ValueError:
             return
-        mapping_file = self.get_credential('mapping_file')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')
         output = os.path.join(out_dir, name)
         os.makedirs(out_dir, exist_ok=True)
         try:
             rows = download_inventory(url)
-            if mapping_file:
-                rows = merge_mapping(rows, Path(mapping_file))
             catalog.save_rows(self.name, rows)
             with open(output, 'w', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=rows[0].keys())
