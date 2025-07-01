@@ -19,6 +19,7 @@ class SeawideSupplier(Supplier):
         user = self.get_credential('username')
         password = self.get_credential('password')
         port = int(self.get_credential('port', 21))
+        protocol = self.get_credential('protocol', 'ftps').lower()
         remote_file = self.get_credential('remote_update_file', 'inventory_update.csv')
         output = self.get_credential('output', 'seawide_inventory_update.csv')
 
@@ -27,10 +28,11 @@ class SeawideSupplier(Supplier):
             return
 
         try:
-            with ftplib.FTP_TLS() as ftp:
+            with (ftplib.FTP() if protocol == 'ftp' else ftplib.FTP_TLS()) as ftp:
                 ftp.connect(host, port)
                 ftp.login(user, password)
-                ftp.prot_p()
+                if protocol != 'ftp':
+                    ftp.prot_p()
                 with open(output, 'wb') as f:
                     ftp.retrbinary(f'RETR {remote_file}', f.write)
             logging.info('Downloaded Seawide inventory update to %s', output)
@@ -43,6 +45,7 @@ class SeawideSupplier(Supplier):
         user = self.get_credential('username')
         password = self.get_credential('password')
         port = int(self.get_credential('port', 21))
+        protocol = self.get_credential('protocol', 'ftps').lower()
         remote_file = self.get_credential('remote_full_file', 'inventory_full.csv')
         output = self.get_credential('full_output', 'seawide_inventory_full.csv')
 
@@ -51,10 +54,11 @@ class SeawideSupplier(Supplier):
             return
 
         try:
-            with ftplib.FTP_TLS() as ftp:
+            with (ftplib.FTP() if protocol == 'ftp' else ftplib.FTP_TLS()) as ftp:
                 ftp.connect(host, port)
                 ftp.login(user, password)
-                ftp.prot_p()
+                if protocol != 'ftp':
+                    ftp.prot_p()
                 with open(output, 'wb') as f:
                     ftp.retrbinary(f'RETR {remote_file}', f.write)
             logging.info('Downloaded Seawide full inventory to %s', output)
@@ -67,14 +71,17 @@ class SeawideSupplier(Supplier):
         user = self.get_credential('username')
         password = self.get_credential('password')
         port = int(self.get_credential('port', 21))
+        protocol = self.get_credential('protocol', 'ftps').lower()
         if not host or not user or not password:
             logging.warning('Seawide FTP credentials missing')
             print('Missing credentials')
             return
         try:
-            with ftplib.FTP_TLS() as ftp:
+            with (ftplib.FTP() if protocol == 'ftp' else ftplib.FTP_TLS()) as ftp:
                 ftp.connect(host, port, timeout=10)
                 ftp.login(user, password)
+                if protocol != 'ftp':
+                    ftp.prot_p()
                 ftp.quit()
             logging.info('Seawide FTP connection successful')
             print('Connection successful')
@@ -100,10 +107,11 @@ class SeawideSupplier(Supplier):
 
         os.makedirs(out_dir, exist_ok=True)
         try:
-            with ftplib.FTP_TLS() as ftp:
+            with (ftplib.FTP() if protocol == 'ftp' else ftplib.FTP_TLS()) as ftp:
                 ftp.connect(host, port)
                 ftp.login(user, password)
-                ftp.prot_p()
+                if protocol != 'ftp':
+                    ftp.prot_p()
                 with open(output, 'wb') as f:
                     ftp.retrbinary(f'RETR {remote}', f.write)
             logging.info('Downloaded Seawide catalog to %s', output)

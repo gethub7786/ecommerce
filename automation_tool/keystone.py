@@ -115,18 +115,53 @@ class KeystoneSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch Keystone full inventory: %s', exc)
 
-    def test_connection(self) -> None:
-        """Simple connection test to the SOAP endpoint."""
+    def _ftp_connect(self):
+        host = self.get_credential('ftp_host')
+        user = self.get_credential('ftp_user')
+        password = self.get_credential('ftp_password')
+        port = int(self.get_credential('ftp_port', 21))
+        protocol = self.get_credential('ftp_protocol', 'ftps').lower()
+        if not host or not user or not password:
+            return None
         try:
-            with urllib.request.urlopen('http://order.ekeystone.com/wselectronicorder/electronicorder.asmx', timeout=10) as resp:
+            import ftplib
+            if protocol == 'ftp':
+                ftp = ftplib.FTP()
+            else:
+                ftp = ftplib.FTP_TLS()
+            ftp.connect(host, port, timeout=10)
+            ftp.login(user, password)
+            if isinstance(ftp, ftplib.FTP_TLS):
+                ftp.prot_p()
+            return ftp
+        except Exception as exc:
+            logging.exception('Keystone FTP connection failed: %s', exc)
+            return None
+
+    def test_connection(self) -> None:
+        """Test SOAP and optionally FTP connectivity."""
+        ftp = self._ftp_connect()
+        if ftp:
+            ftp.quit()
+            print('FTP connection successful')
+            logging.info('Keystone FTP connection successful')
+            return
+
+        try:
+            with urllib.request.urlopen(
+                'http://order.ekeystone.com/wselectronicorder/electronicorder.asmx',
+                timeout=10,
+            ) as resp:
                 if resp.status == 200:
                     print('Connection successful')
-                    logging.info('Keystone connection successful')
+                    logging.info('Keystone SOAP connection successful')
                 else:
                     print('Connection failed: status', resp.status)
-                    logging.warning('Keystone connection failed status %s', resp.status)
+                    logging.warning(
+                        'Keystone SOAP connection failed status %s', resp.status
+                    )
         except Exception as exc:
-            logging.exception('Keystone connection failed: %s', exc)
+            logging.exception('Keystone SOAP connection failed: %s', exc)
             print('Connection failed:', exc)
 
     def fetch_catalog(self) -> None:
