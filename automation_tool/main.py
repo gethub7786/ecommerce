@@ -1,6 +1,12 @@
 import logging
 import os
+import sys
 """Console entry point for the automation tool."""
+
+# Allow running the file directly by ensuring the parent directory is on
+# ``sys.path``. This mirrors ``python -m automation_tool`` behaviour.
+if __package__ is None:  # pragma: no cover - runtime convenience
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from automation_tool import (
     KeystoneSupplier,

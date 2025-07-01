@@ -215,6 +215,7 @@ class SeawideSupplier(Supplier):
         user = self.get_credential('username')
         password = self.get_credential('password')
         port = int(self.get_credential('port', 21))
+        protocol = self.get_credential('protocol', 'ftps').lower()
         remote = self.get_credential('catalog_remote', 'catalog.csv')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'seawide_catalog.csv')

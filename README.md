@@ -26,8 +26,8 @@ The tool works without external dependencies and stores configuration locally.
 
 ```bash
 python -m automation_tool
-``` 
-or run the script directly:
+```
+or run the entry point directly:
 ```bash
 python automation_tool/main.py
 ```
