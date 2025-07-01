@@ -231,7 +231,6 @@ class KeystoneSupplier(Supplier):
             if protocol in ('ftp',):
                 ftp = ftplib.FTP()
                 ftp.connect(host, port, timeout=10)
-                ftp.passiveserver = True
                 ftp.login(user, password)
                 ftp.set_pasv(True)
                 return ftp
@@ -239,7 +238,6 @@ class KeystoneSupplier(Supplier):
                 ftp = ftplib.FTP_TLS()
                 ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
                 ftp.connect(host, port, timeout=10)
-                ftp.passiveserver = True
                 ftp.login(user, password)
                 ftp.prot_p()
                 ftp.set_pasv(True)
@@ -248,7 +246,6 @@ class KeystoneSupplier(Supplier):
                 ftp = ftplib.FTP_TLS()
                 ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
                 ftp.connect(host, port, timeout=10)
-                ftp.passiveserver = True
                 # Wrap the socket immediately for implicit TLS
                 ftp.sock = ssl.wrap_socket(ftp.sock, ssl_version=ftp.ssl_version)
                 ftp.file = ftp.sock.makefile('r', encoding=ftp.encoding)
