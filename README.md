@@ -4,7 +4,13 @@ This repository contains utilities for managing inventory data and simple suppli
 
 ## Automation Tool
 
-`automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates. The tool works without external dependencies and stores configuration locally.
+`automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
+
+* **Keystone** - contacts the SOAP web service with the provided account and security key.
+* **CWR** - downloads the CSV feed and optionally merges a SKU mapping.
+* **Seawide** - connects to the FTP server and retrieves the latest inventory file.
+
+The tool works without external dependencies and stores configuration locally.
 
 ### Running
 
