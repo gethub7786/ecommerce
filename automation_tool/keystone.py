@@ -58,17 +58,11 @@ class KeystoneSupplier(Supplier):
         print('Credentials saved.')
 
     def configure_ftp(self) -> None:
-        """Prompt for FTP authentication details."""
+        """Prompt only for FTP username and password."""
         user = input('FTP User: ')
         password = input('FTP Password: ')
-        remote_dir = input('Remote Folder (optional): ')
-        remote_file = input('Remote File (optional): ')
         self.set_credential('ftp_user', user)
         self.set_credential('ftp_password', password)
-        if remote_dir:
-            self.set_credential('ftp_remote_dir', remote_dir)
-        if remote_file:
-            self.set_credential('remote_update_file', remote_file)
         print('FTP credentials saved.')
 
     # Primary method: SOAP API inventory tracking
@@ -138,8 +132,7 @@ class KeystoneSupplier(Supplier):
         if not remote_file:
             remote_file = input('Remote file name to download: ')
             self.set_credential('remote_update_file', remote_file)
-        remote_dir = self.get_credential('ftp_remote_dir', '')
-        remote_path = f"{remote_dir.rstrip('/')}/{remote_file}" if remote_dir else remote_file
+        remote_path = remote_file
 
         ftp = self._ftp_connect()
         if not ftp:
