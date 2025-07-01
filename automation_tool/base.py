@@ -31,3 +31,12 @@ class Supplier:
 
     def fetch_inventory(self) -> None:
         logging.info("Fetching inventory for %s", self.name)
+
+    def test_connection(self) -> None:
+        """Placeholder connection test."""
+        logging.info("Testing connection for %s", self.name)
+        print("No connection test implemented")
+
+    def fetch_catalog(self) -> None:
+        """Placeholder catalog fetch."""
+        logging.info("Fetching catalog for %s", self.name)

@@ -63,6 +63,7 @@ class SeawideSupplier(Supplier):
         remote = self.get_credential('catalog_remote', 'catalog.csv')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'seawide_catalog.csv')
+        mapping_file = self.get_credential('mapping_file')
         output = os.path.join(out_dir, name)
 
         if not host or not user or not password:
@@ -80,6 +81,7 @@ class SeawideSupplier(Supplier):
             logging.info('Downloaded Seawide catalog to %s', output)
             with open(output, newline='') as f:
                 rows = list(csv.DictReader(f))
+            rows = catalog.apply_mapping(rows, mapping_file)
             catalog.save_rows(self.name, rows)
             print('Catalog saved to', catalog.catalog_path(self.name))
         except Exception as exc:

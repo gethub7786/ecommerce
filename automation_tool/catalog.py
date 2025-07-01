@@ -10,6 +10,22 @@ def catalog_path(name: str) -> str:
     return os.path.join(CATALOG_DIR, f"{name}.csv")
 
 
+def apply_mapping(rows: list, mapping_file: str) -> list:
+    """Apply a SKU mapping file if provided."""
+    if not mapping_file or not os.path.exists(mapping_file):
+        return rows
+    with open(mapping_file, newline='') as f:
+        mapping = {r['sku']: r['modified_sku'] for r in csv.DictReader(f)}
+    new_rows = []
+    for r in rows:
+        sku = r.get('SKU')
+        if sku in mapping:
+            r = r.copy()
+            r['SKU'] = mapping[sku]
+        new_rows.append(r)
+    return new_rows
+
+
 def save_rows(name: str, rows: list) -> None:
     path = catalog_path(name)
     if not rows:

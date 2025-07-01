@@ -10,9 +10,9 @@ This repository contains utilities for managing inventory data and simple suppli
 * **CWR** - downloads the CSV feed and optionally merges a SKU mapping.
 * **Seawide** - connects to the FTP server and retrieves the latest inventory file.
 
-Seawide suppliers now include utilities to test the FTP connection and download
-a full vendor catalog. Catalogs are stored under `automation_tool/data/catalogs`
-and can be managed from the menu (delete SKUs individually or via a delete file).
+All suppliers now include utilities to test their connection and download a
+vendor catalog. Catalogs are stored under `automation_tool/data/catalogs` and can
+be managed from the menu (delete SKUs individually or via a delete file).
 
 The tool works without external dependencies and stores configuration locally.
 
@@ -27,9 +27,9 @@ python automation_tool/main.py
 ```
 
 From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.
-When using the Seawide supplier you may also test the FTP connection and
-retrieve the full product catalog at a chosen interval. Catalog entries can be
-removed later from the "Manage Catalog" option.
+For each supplier you may test the connection and schedule catalog downloads at
+the desired interval. Catalog entries can later be removed from the "Manage
+Catalog" option.
 
 ## Inventory Processor
 
