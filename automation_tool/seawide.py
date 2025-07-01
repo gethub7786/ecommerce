@@ -168,12 +168,14 @@ class SeawideSupplier(Supplier):
                 ftp = ftplib.FTP()
                 ftp.connect(host, port, timeout=10)
                 ftp.login(user, password)
+                ftp.set_pasv(True)
                 return ftp
             elif protocol in ('ftps', 'explicit-ftps'):
                 ftp = ftplib.FTP_TLS()
                 ftp.connect(host, port, timeout=10)
                 ftp.login(user, password)
                 ftp.prot_p()
+                ftp.set_pasv(True)
                 return ftp
             elif protocol == 'implicit-ftps':
                 ftp = ftplib.FTP_TLS()
@@ -182,6 +184,7 @@ class SeawideSupplier(Supplier):
                 ftp.file = ftp.sock.makefile('r', encoding=ftp.encoding)
                 ftp.login(user, password, secure=False)
                 ftp.prot_p()
+                ftp.set_pasv(True)
                 return ftp
             elif protocol == 'sftp':
                 try:
