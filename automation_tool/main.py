@@ -8,6 +8,7 @@ from automation_tool import (
     SeawideSupplier,
 )
 from automation_tool.scheduler import RepeatedTimer
+from automation_tool import catalog
 
 logging.basicConfig(
     filename='automation.log',
@@ -22,25 +23,51 @@ SUPPLIERS = {
 }
 
 SCHEDULES = {
-    '1': 300,
-    '2': 900,
-    '3': 1200,
-    '4': 1800,
-    '5': 2700,
-    '6': 3600,
-    '7': 86400,
-    '8': 604800,
+    '1': 300,      # 5 minutes
+    '2': 3600,     # 1 hour
+    '3': 86400,    # 1 day
 }
+
+catalog_jobs = {}
 
 jobs = {}
 
-def schedule_supplier(supplier, interval):
-    if supplier.name in jobs:
-        jobs[supplier.name].stop()
-    timer = RepeatedTimer(interval, supplier.fetch_inventory)
+def schedule_function(name, func, interval, store):
+    if name in store:
+        store[name].stop()
+    timer = RepeatedTimer(interval, func)
     timer.start()
-    jobs[supplier.name] = timer
-    logging.info("Scheduled %s every %s seconds", supplier.name, interval)
+    store[name] = timer
+    logging.info("Scheduled %s every %s seconds", name, interval)
+
+def schedule_supplier(supplier, interval):
+    schedule_function(supplier.name, supplier.fetch_inventory, interval, jobs)
+
+def schedule_catalog(supplier, interval):
+    if hasattr(supplier, 'fetch_catalog'):
+        schedule_function(f'{supplier.name}_catalog', supplier.fetch_catalog, interval, catalog_jobs)
+
+def show_catalog_menu(supplier):
+    name = supplier.name
+    while True:
+        rows = catalog.load_rows(name)
+        print(f"\nCatalog for {name} - {len(rows)} rows")
+        print("1. Delete SKU")
+        print("2. Delete via File")
+        print("3. Back")
+        choice = input("Select option: ")
+        if choice == '1':
+            sku = input('SKU to delete: ')
+            catalog.delete_sku(name, sku)
+            print('Deleted', sku)
+        elif choice == '2':
+            path = input('Delete file path: ')
+            catalog.delete_from_file(name, path)
+            print('Processed delete file')
+        elif choice == '3':
+            break
+        else:
+            print('Invalid option')
 
 
 def show_supplier_menu(key):
@@ -50,7 +77,16 @@ def show_supplier_menu(key):
         print("1. Set Credential")
         print("2. Fetch Inventory Now")
         print("3. Schedule Inventory")
-        print("4. Back")
+        if hasattr(supplier, 'fetch_catalog'):
+            print("4. Fetch Catalog Now")
+            print("5. Schedule Catalog")
+            print("6. Manage Catalog")
+        if hasattr(supplier, 'test_connection'):
+            print("7. Test Connection")
+            back_opt = '8'
+        else:
+            back_opt = '4' if not hasattr(supplier, 'fetch_catalog') else '7'
+        print(f"{back_opt}. Back")
         choice = input("Select option: ")
         if choice == '1':
             k = input("Credential name: ")
@@ -66,7 +102,20 @@ def show_supplier_menu(key):
             opt = input("Choice: ")
             if opt in SCHEDULES:
                 schedule_supplier(supplier, SCHEDULES[opt])
-        elif choice == '4':
+        elif hasattr(supplier, 'fetch_catalog') and choice == '4':
+            supplier.fetch_catalog()
+        elif hasattr(supplier, 'fetch_catalog') and choice == '5':
+            print("Select schedule interval:")
+            for n, sec in SCHEDULES.items():
+                print(f"{n}. {sec} seconds")
+            opt = input("Choice: ")
+            if opt in SCHEDULES:
+                schedule_catalog(supplier, SCHEDULES[opt])
+        elif hasattr(supplier, 'fetch_catalog') and choice == '6':
+            show_catalog_menu(supplier)
+        elif hasattr(supplier, 'test_connection') and choice == '7':
+            supplier.test_connection()
+        elif choice == back_opt:
             break
         else:
             print("Invalid option")
@@ -83,7 +132,7 @@ def main():
         if choice in SUPPLIERS:
             show_supplier_menu(choice)
         elif choice == '4':
-            for t in jobs.values():
+            for t in list(jobs.values()) + list(catalog_jobs.values()):
                 t.stop()
             break
         else:
