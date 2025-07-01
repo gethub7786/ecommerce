@@ -12,12 +12,23 @@ from inventory_processor import (
     save_inventory,
 )
 
+FEED_TEMPLATE = (
+    "https://cwrdistribution.com/feeds/productdownload.php?"
+    "id={id}&version=3&format=csv&fields=sku,price,sdesc,qtynj,qtyfl,mfgn"
+)
+
 DEFAULT_LOOKBACK_HOURS = 10
 
 class CwrSupplier(Supplier):
     """CWR Distribution supplier implementation."""
     def __init__(self):
         super().__init__('CWR', 'cwr.json')
+
+    def configure_credentials(self) -> None:
+        """Prompt for the feed ID used in the URL."""
+        feed_id = input('Feed ID: ')
+        self.set_credential('feed_id', feed_id)
+        print('Credentials saved.')
 
     def _get_last_time(self) -> int:
         saved = self.get_credential('last_unix_time')
@@ -29,12 +40,14 @@ class CwrSupplier(Supplier):
         self.set_credential('last_unix_time', str(ts))
 
     def fetch_inventory(self) -> None:
-        base_url = self.get_credential('base_url')
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            logging.warning('CWR feed ID missing')
+            print('Missing feed ID')
+            return
+        base_url = FEED_TEMPLATE.format(id=feed_id)
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('output', 'cwr_inventory.txt')
-        if not base_url:
-            logging.warning('CWR base_url credential missing')
-            return
 
         since = self._get_last_time()
         try:
@@ -49,12 +62,14 @@ class CwrSupplier(Supplier):
 
     def fetch_inventory_full(self) -> None:
         """Force download the entire inventory feed and reset the timestamp."""
-        base_url = self.get_credential('base_url')
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            logging.warning('CWR feed ID missing')
+            print('Missing feed ID')
+            return
+        base_url = FEED_TEMPLATE.format(id=feed_id)
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('full_output', 'cwr_inventory_full.txt')
-        if not base_url:
-            logging.warning('CWR base_url credential missing')
-            return
         try:
             rows = download_inventory(base_url, 0)
             if mapping_file:
@@ -66,10 +81,11 @@ class CwrSupplier(Supplier):
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 
     def test_connection(self) -> None:
-        base_url = self.get_credential('base_url')
-        if not base_url:
-            print('Missing base_url credential')
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            print('Missing feed ID')
             return
+        base_url = FEED_TEMPLATE.format(id=feed_id)
         try:
             with urllib.request.urlopen(base_url, timeout=10) as resp:
                 if resp.status == 200:
@@ -83,14 +99,16 @@ class CwrSupplier(Supplier):
             print('Connection failed:', exc)
 
     def fetch_catalog(self) -> None:
-        base_url = self.get_credential('base_url')
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            logging.warning('CWR feed ID missing')
+            print('Missing feed ID')
+            return
+        base_url = FEED_TEMPLATE.format(id=feed_id)
         mapping_file = self.get_credential('mapping_file')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')
         output = os.path.join(out_dir, name)
-        if not base_url:
-            logging.warning('CWR base_url credential missing')
-            return
         os.makedirs(out_dir, exist_ok=True)
         try:
             rows = download_inventory(base_url, 0)
