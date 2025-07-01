@@ -172,6 +172,7 @@ class SeawideSupplier(Supplier):
         port = PORT
         try:
             ftp = ImplicitFTP_TLS()
+            ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
             ftp.connect(host, port, timeout=30)
             try:
                 ftp.login(user, password)

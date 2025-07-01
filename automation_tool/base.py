@@ -35,6 +35,8 @@ class ImplicitFTP_TLS(ftplib.FTP_TLS):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Use TLS 1.2 explicitly for better compatibility
+        self.context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         self._host = None
 
     def connect(self, host: str = "", port: int = 0, timeout: int | None = None,

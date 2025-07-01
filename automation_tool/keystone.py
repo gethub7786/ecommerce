@@ -3,6 +3,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 import csv
 import os
+import ssl
 from .base import Supplier, SFTPWrapper, ImplicitFTP_TLS
 from . import catalog
 
@@ -264,6 +265,7 @@ class KeystoneSupplier(Supplier):
         try:
             import ftplib
             ftp = ImplicitFTP_TLS()
+            ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
             ftp.connect(host, port, timeout=30)
             try:
                 ftp.login(user, password)
