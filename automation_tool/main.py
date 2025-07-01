@@ -79,6 +79,8 @@ def show_supplier_menu(key):
         idx = 1
         print(f"{idx}. Set Credential"); opts[str(idx)] = 'cred'; idx += 1
         print(f"{idx}. Fetch Inventory Update"); opts[str(idx)] = 'inv'; idx += 1
+        if hasattr(supplier, 'fetch_inventory_secondary'):
+            print(f"{idx}. Fetch Inventory Update via FTP (Secondary)"); opts[str(idx)] = 'inv_sec'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):
             print(f"{idx}. Fetch Full Inventory"); opts[str(idx)] = 'inv_full'; idx += 1
         print(f"{idx}. Schedule Inventory Update"); opts[str(idx)] = 'sch_inv'; idx += 1
@@ -105,6 +107,9 @@ def show_supplier_menu(key):
             supplier.fetch_inventory()
         elif action == 'inv_full':
             supplier.fetch_inventory_full()
+        elif action == 'inv_sec':
+            if hasattr(supplier, 'fetch_inventory_secondary'):
+                supplier.fetch_inventory_secondary()
         elif action == 'sch_inv':
             print("Select schedule interval:")
             for n, (label, _) in SCHEDULES.items():

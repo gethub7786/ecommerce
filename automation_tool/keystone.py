@@ -31,7 +31,8 @@ class KeystoneSupplier(Supplier):
     def __init__(self):
         super().__init__('Keystone', 'keystone.json')
 
-    def fetch_inventory(self) -> None:
+    # Primary method: SOAP API inventory tracking
+    def fetch_inventory_primary(self) -> None:
         """Retrieve incremental inventory with warehouse breakdown."""
         account = self.get_credential('account_number')
         key = self.get_credential('security_key')
@@ -72,6 +73,31 @@ class KeystoneSupplier(Supplier):
                 logging.warning('No data returned from Keystone update')
         except Exception as exc:
             logging.exception('Failed to fetch Keystone inventory: %s', exc)
+
+    # Backwards compatible alias
+    def fetch_inventory(self) -> None:
+        self.fetch_inventory_primary()
+
+    # Secondary method: FTP download
+    def fetch_inventory_secondary(self) -> None:
+        """Retrieve the inventory update file via FTP."""
+        ftp = self._ftp_connect()
+        remote_file = self.get_credential('remote_update_file', 'inventory_update.csv')
+        output = self.get_credential('output', 'keystone_inventory_ftp.csv')
+        if not ftp:
+            logging.warning('Keystone FTP credentials missing')
+            return
+        try:
+            with open(output, 'wb') as f:
+                ftp.retrbinary(f'RETR {remote_file}', f.write)
+            logging.info('Downloaded Keystone inventory update via FTP to %s', output)
+        except Exception as exc:
+            logging.exception('Failed to fetch Keystone FTP inventory: %s', exc)
+        finally:
+            try:
+                ftp.quit()
+            except Exception:
+                pass
 
     def fetch_inventory_full(self) -> None:
         """Retrieve the full Keystone inventory and store it as CSV."""
