@@ -228,27 +228,27 @@ class KeystoneSupplier(Supplier):
             return None
         try:
             import ftplib, ssl
-            if protocol in ('ftp',):
+            if protocol in ("ftp",):
                 ftp = ftplib.FTP()
-                ftp.connect(host, port, timeout=10)
+                ftp.connect(host, port, timeout=30)
                 ftp.login(user, password)
                 ftp.set_pasv(True)
                 return ftp
-            elif protocol in ('ftps', 'explicit-ftps'):
+            elif protocol in ("ftps", "explicit-ftps"):
                 ftp = ftplib.FTP_TLS()
                 ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
-                ftp.connect(host, port, timeout=10)
+                ftp.connect(host, port, timeout=30)
                 ftp.login(user, password)
                 ftp.prot_p()
                 ftp.set_pasv(True)
                 return ftp
-            elif protocol == 'implicit-ftps':
+            elif protocol == "implicit-ftps":
                 ftp = ftplib.FTP_TLS()
                 ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
-                ftp.connect(host, port, timeout=10)
-                # Wrap the socket immediately for implicit TLS
-                ftp.sock = ssl.wrap_socket(ftp.sock, ssl_version=ftp.ssl_version)
-                ftp.file = ftp.sock.makefile('r', encoding=ftp.encoding)
+                ftp.connect(host, port, timeout=30)
+                context = ssl.SSLContext(ftp.ssl_version)
+                ftp.sock = context.wrap_socket(ftp.sock, server_hostname=host)
+                ftp.file = ftp.sock.makefile("r", encoding=ftp.encoding)
                 ftp.login(user, password, secure=False)
                 ftp.prot_p()
                 ftp.set_pasv(True)
