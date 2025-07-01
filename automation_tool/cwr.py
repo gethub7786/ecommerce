@@ -12,10 +12,21 @@ from inventory_processor import (
     save_inventory,
 )
 
+DEFAULT_LOOKBACK_HOURS = 10
+
 class CwrSupplier(Supplier):
     """CWR Distribution supplier implementation."""
     def __init__(self):
         super().__init__('CWR', 'cwr.json')
+
+    def _get_last_time(self) -> int:
+        saved = self.get_credential('last_unix_time')
+        if saved is not None:
+            return int(saved)
+        return int((datetime.now() - timedelta(hours=DEFAULT_LOOKBACK_HOURS)).timestamp())
+
+    def _set_last_time(self, ts: int) -> None:
+        self.set_credential('last_unix_time', str(ts))
 
     def fetch_inventory(self) -> None:
         base_url = self.get_credential('base_url')
@@ -25,18 +36,19 @@ class CwrSupplier(Supplier):
             logging.warning('CWR base_url credential missing')
             return
 
-        since = int((datetime.now() - timedelta(hours=10)).timestamp())
+        since = self._get_last_time()
         try:
             rows = download_inventory(base_url, since)
             if mapping_file:
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR inventory to %s', output)
+            self._set_last_time(int(datetime.now().timestamp()))
         except Exception as exc:
             logging.exception('Failed to fetch CWR inventory: %s', exc)
 
     def fetch_inventory_full(self) -> None:
-        """Force download the entire inventory feed."""
+        """Force download the entire inventory feed and reset the timestamp."""
         base_url = self.get_credential('base_url')
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('full_output', 'cwr_inventory_full.txt')
@@ -49,6 +61,7 @@ class CwrSupplier(Supplier):
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
+            self._set_last_time(int(datetime.now().timestamp()))
         except Exception as exc:
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 

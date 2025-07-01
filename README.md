@@ -7,7 +7,7 @@ This repository contains utilities for managing inventory data and simple suppli
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails.
-* **CWR** - downloads the CSV feed and optionally merges a SKU mapping. A force full inventory option resets the timestamp to 1970.
+* **CWR** - downloads the CSV feed including `qtynj` and `qtyfl` location fields and optionally merges a SKU mapping. The last download time is stored so incremental updates use the previous UNIX timestamp. A force full inventory option resets the timestamp to 1970.
 * **Seawide** - the **primary** inventory method uses the same Keystone SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) at `http://order.ekeystone.com/wselectronicorder/electronicorder.asmx` and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. In each supplier menu
@@ -57,7 +57,7 @@ tool, make sure you are using the current package layout and run the command
 from the repository root as shown above.
 
 From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.  Keystone, CWR and Seawide offer both update and full inventory downloads which can also be scheduled.
-For each supplier you may test the connection and schedule catalog downloads at intervals of **1 minute**, **15 minutes**, **30 minutes**, **45 minutes**, **1 hour** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
+For each supplier you may test the connection and schedule catalog downloads at intervals of **5 minutes**, **15 minutes**, **25 minutes**, **30 minutes**, **45 minutes**, **1 hour** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
 
 ## Inventory Processor
 
