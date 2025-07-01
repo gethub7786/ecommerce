@@ -1,24 +1,56 @@
 """Download and merge CWR Distribution inventory feed."""
 
 import csv
-import json
 import ssl
 import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
 
-def download_inventory(base_url: str, since: int) -> list:
-    """Download CSV data from CWR."""
-    url = f"{base_url}&ohtime={since}"
+BASE_URL = "https://cwrdistribution.com/feeds/productdownload.php"
+
+
+def build_url(feed_id: str, since: int, *, inventory_only: bool = False) -> str:
+    """Construct the CWR feed URL."""
+    if inventory_only:
+        fields = "sku,qty,upc,mfgn,qtynj,qtyfl"
+        param = "ohtime"
+    else:
+        fields = "sku,price,qty,upc,qtyfl,qtynj,mfgn"
+        param = "time"
+    return (
+        f"{BASE_URL}?id={feed_id}&version=3&format=csv&fields={fields}&{param}={since}"
+    )
+
+
+def download_inventory(url: str, *, inventory_only: bool = False) -> list:
+    """Download CSV data from CWR using the provided URL."""
     context = ssl.create_default_context()
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
     with urllib.request.urlopen(url, context=context) as resp:
-        return list(csv.DictReader(
-            (line.decode('utf-8') for line in resp),
-            fieldnames=["SKU", "Quantity", "UPC/EAN", "Manufacturer", "Price", "MAP", "MRP", "qtynj", "qtyfl"]
-        ))
+        if inventory_only:
+            fieldnames = [
+                "SKU",
+                "Quantity",
+                "UPC/EAN",
+                "Manufacturer",
+                "qtynj",
+                "qtyfl",
+            ]
+        else:
+            fieldnames = [
+                "SKU",
+                "Price",
+                "Quantity",
+                "UPC/EAN",
+                "qtyfl",
+                "qtynj",
+                "Manufacturer",
+            ]
+        return list(
+            csv.DictReader((line.decode("utf-8") for line in resp), fieldnames=fieldnames)
+        )
 
 
 def merge_mapping(rows: list, mapping_path: Path) -> list:
@@ -46,8 +78,9 @@ def save_inventory(rows: list, output: Path):
             writer.writerow(r)
 
 
-def main(base_url: str, since: int, mapping: Path, output: Path):
-    rows = download_inventory(base_url, since)
+def main(feed_id: str, since: int, mapping: Path, output: Path, *, inventory_only: bool = False):
+    url = build_url(feed_id, since, inventory_only=inventory_only)
+    rows = download_inventory(url, inventory_only=inventory_only)
     merged = merge_mapping(rows, mapping)
     save_inventory(merged, output)
 
@@ -56,9 +89,10 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description="Process CWR inventory feed")
-    parser.add_argument('--base-url', required=True, help='Feed base URL')
+    parser.add_argument('--feed-id', required=True, help='CWR feed ID')
     parser.add_argument('--since', type=int, help='UNIX timestamp', default=int((datetime.now() - timedelta(hours=10)).timestamp()))
+    parser.add_argument('--inventory-only', action='store_true', help='Use ohtime to get quantity changes only')
     parser.add_argument('--mapping', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     args = parser.parse_args()
-    main(args.base_url, args.since, args.mapping, args.output)
+    main(args.feed_id, args.since, args.mapping, args.output, inventory_only=args.inventory_only)

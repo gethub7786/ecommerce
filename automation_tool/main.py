@@ -32,10 +32,10 @@ SUPPLIERS = {
 SCHEDULES = {
     '0': ("5 minutes", 5 * 60),
     '1': ("15 minutes", 15 * 60),
-    '2': ("25 minutes", 25 * 60),
-    '3': ("30 minutes", 30 * 60),
-    '4': ("45 minutes", 45 * 60),
-    '5': ("1 hour", 60 * 60),
+    '2': ("30 minutes", 30 * 60),
+    '3': ("45 minutes", 45 * 60),
+    '4': ("1 hour", 60 * 60),
+    '5': ("1 day", 24 * 60 * 60),
     '6': ("1 week", 7 * 24 * 60 * 60),
 }
 
@@ -90,11 +90,15 @@ def show_supplier_menu(key):
         if hasattr(supplier, 'configure_ftp'):
             print(f"{idx}. Set FTP Credentials"); opts[str(idx)] = 'ftpcred'; idx += 1
         print(f"{idx}. Fetch Inventory Update"); opts[str(idx)] = 'inv'; idx += 1
+        if hasattr(supplier, 'fetch_inventory_stock'):
+            print(f"{idx}. Fetch Inventory Stock Only"); opts[str(idx)] = 'inv_stock'; idx += 1
         if hasattr(supplier, 'fetch_inventory_secondary'):
             print(f"{idx}. Fetch Inventory Update via FTP (Secondary)"); opts[str(idx)] = 'inv_sec'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):
             print(f"{idx}. Fetch Full Inventory"); opts[str(idx)] = 'inv_full'; idx += 1
         print(f"{idx}. Schedule Inventory Update"); opts[str(idx)] = 'sch_inv'; idx += 1
+        if hasattr(supplier, 'fetch_inventory_stock'):
+            print(f"{idx}. Schedule Inventory Stock"); opts[str(idx)] = 'sch_inv_stock'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):
             print(f"{idx}. Schedule Full Inventory"); opts[str(idx)] = 'sch_inv_full'; idx += 1
         if hasattr(supplier, 'fetch_catalog'):
@@ -127,6 +131,9 @@ def show_supplier_menu(key):
         elif action == 'inv_sec':
             if hasattr(supplier, 'fetch_inventory_secondary'):
                 supplier.fetch_inventory_secondary()
+        elif action == 'inv_stock':
+            if hasattr(supplier, 'fetch_inventory_stock'):
+                supplier.fetch_inventory_stock()
         elif action == 'sch_inv':
             print("Select schedule interval:")
             for n, (label, _) in SCHEDULES.items():
@@ -142,6 +149,14 @@ def show_supplier_menu(key):
                 opt = input("Choice: ")
                 if opt in SCHEDULES:
                     schedule_function(f'{supplier.name}_full', supplier.fetch_inventory_full, SCHEDULES[opt][1], jobs)
+        elif action == 'sch_inv_stock':
+            if hasattr(supplier, 'fetch_inventory_stock'):
+                print("Select schedule interval:")
+                for n, (label, _) in SCHEDULES.items():
+                    print(f"{n}. {label}")
+                opt = input("Choice: ")
+                if opt in SCHEDULES:
+                    schedule_function(f'{supplier.name}_stock', supplier.fetch_inventory_stock, SCHEDULES[opt][1], jobs)
         elif action == 'cat':
             supplier.fetch_catalog()
         elif action == 'sch_cat':

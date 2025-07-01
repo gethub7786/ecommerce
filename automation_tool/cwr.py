@@ -7,15 +7,12 @@ from pathlib import Path
 from .base import Supplier
 from . import catalog
 from inventory_processor import (
+    build_url,
     download_inventory,
     merge_mapping,
     save_inventory,
 )
 
-FEED_TEMPLATE = (
-    "https://cwrdistribution.com/feeds/productdownload.php?"
-    "id={id}&version=3&format=csv&fields=sku,price,sdesc,qtynj,qtyfl,mfgn"
-)
 
 DEFAULT_LOOKBACK_HOURS = 10
 
@@ -39,19 +36,28 @@ class CwrSupplier(Supplier):
     def _set_last_time(self, ts: int) -> None:
         self.set_credential('last_unix_time', str(ts))
 
+    def _get_last_ohtime(self) -> int:
+        saved = self.get_credential('last_ohtime')
+        if saved is not None:
+            return int(saved)
+        return int((datetime.now() - timedelta(hours=DEFAULT_LOOKBACK_HOURS)).timestamp())
+
+    def _set_last_ohtime(self, ts: int) -> None:
+        self.set_credential('last_ohtime', str(ts))
+
     def fetch_inventory(self) -> None:
         feed_id = self.get_credential('feed_id')
         if not feed_id:
             logging.warning('CWR feed ID missing')
             print('Missing feed ID')
             return
-        base_url = FEED_TEMPLATE.format(id=feed_id)
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('output', 'cwr_inventory.txt')
 
         since = self._get_last_time()
+        url = build_url(feed_id, since)
         try:
-            rows = download_inventory(base_url, since)
+            rows = download_inventory(url)
             if mapping_file:
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
@@ -67,11 +73,11 @@ class CwrSupplier(Supplier):
             logging.warning('CWR feed ID missing')
             print('Missing feed ID')
             return
-        base_url = FEED_TEMPLATE.format(id=feed_id)
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('full_output', 'cwr_inventory_full.txt')
+        url = build_url(feed_id, 0)
         try:
-            rows = download_inventory(base_url, 0)
+            rows = download_inventory(url)
             if mapping_file:
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
@@ -80,14 +86,36 @@ class CwrSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 
+    def fetch_inventory_stock(self) -> None:
+        """Fetch inventory quantities using ohtime."""
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            logging.warning('CWR feed ID missing')
+            print('Missing feed ID')
+            return
+        mapping_file = self.get_credential('mapping_file')
+        output = self.get_credential('stock_output', 'cwr_inventory_stock.txt')
+
+        since = self._get_last_ohtime()
+        url = build_url(feed_id, since, inventory_only=True)
+        try:
+            rows = download_inventory(url, inventory_only=True)
+            if mapping_file:
+                rows = merge_mapping(rows, Path(mapping_file))
+            save_inventory(rows, Path(output))
+            logging.info('Saved CWR stock inventory to %s', output)
+            self._set_last_ohtime(int(datetime.now().timestamp()))
+        except Exception as exc:
+            logging.exception('Failed to fetch CWR stock inventory: %s', exc)
+
     def test_connection(self) -> None:
         feed_id = self.get_credential('feed_id')
         if not feed_id:
             print('Missing feed ID')
             return
-        base_url = FEED_TEMPLATE.format(id=feed_id)
+        url = build_url(feed_id, 0)
         try:
-            with urllib.request.urlopen(base_url, timeout=10) as resp:
+            with urllib.request.urlopen(url, timeout=10) as resp:
                 if resp.status == 200:
                     print('Connection successful')
                     logging.info('CWR connection successful')
@@ -104,14 +132,14 @@ class CwrSupplier(Supplier):
             logging.warning('CWR feed ID missing')
             print('Missing feed ID')
             return
-        base_url = FEED_TEMPLATE.format(id=feed_id)
+        url = build_url(feed_id, 0)
         mapping_file = self.get_credential('mapping_file')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')
         output = os.path.join(out_dir, name)
         os.makedirs(out_dir, exist_ok=True)
         try:
-            rows = download_inventory(base_url, 0)
+            rows = download_inventory(url)
             if mapping_file:
                 rows = merge_mapping(rows, Path(mapping_file))
             catalog.save_rows(self.name, rows)
