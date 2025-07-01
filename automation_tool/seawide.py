@@ -27,20 +27,20 @@ class SeawideSupplier(Supplier):
         host = input('FTP Host: ')
         user = input('FTP User: ')
         password = input('FTP Password: ')
-        port = input('FTP Port (default 21): ') or '21'
+        port = input('FTP Port (default 990): ') or '990'
         protocol = (
             input(
-                'FTP Protocol (ftp/sftp/implicit-ftps/explicit-ftps, default explicit-ftps): '
+                'FTP Protocol (ftp/sftp/implicit-ftps/explicit-ftps, default implicit-ftps): '
             )
-            or 'explicit-ftps'
+            or 'implicit-ftps'
         )
         remote_dir = input('Remote Folder (optional): ')
         remote_file = input('Remote File (optional): ')
-        self.set_credential('host', host)
-        self.set_credential('username', user)
-        self.set_credential('password', password)
-        self.set_credential('port', port)
-        self.set_credential('protocol', protocol)
+        self.set_credential('ftp_host', host)
+        self.set_credential('ftp_user', user)
+        self.set_credential('ftp_password', password)
+        self.set_credential('ftp_port', port)
+        self.set_credential('ftp_protocol', protocol)
         if remote_dir:
             self.set_credential('ftp_remote_dir', remote_dir)
         if remote_file:
@@ -155,11 +155,11 @@ class SeawideSupplier(Supplier):
                 pass
 
     def _ftp_connect(self):
-        host = self.get_credential('host')
-        user = self.get_credential('username')
-        password = self.get_credential('password')
-        port = int(self.get_credential('port', 21))
-        protocol = self.get_credential('protocol', 'explicit-ftps').lower()
+        host = self.get_credential('ftp_host')
+        user = self.get_credential('ftp_user')
+        password = self.get_credential('ftp_password')
+        port = int(self.get_credential('ftp_port', 990))
+        protocol = self.get_credential('ftp_protocol', 'implicit-ftps').lower()
         if not host or not user or not password:
             print('Missing FTP credentials')
             return None

@@ -13,7 +13,7 @@ This repository contains utilities for managing inventory data and simple suppli
 Keystone and Seawide support optional FTP credentials. In each supplier menu
 you'll see a **Set FTP Credentials** tab where you enter `FTP Host`, `FTP User`,
 `FTP Password`, `FTP Port` and `FTP Protocol` (`ftp`, `sftp`, `implicit-ftps`,
-`explicit-ftps`). Keystone defaults to port `990` with `implicit-ftps`, but you can
+`explicit-ftps`). Both suppliers default to port `990` with `implicit-ftps`, but you can
 change these values when configuring the credentials. You can also specify a
 default `Remote Folder` and `Remote File` used when downloading inventory from
 FTP. Passive mode is enabled automatically for all FTP connections. Use **Test Connection** to verify the FTP access. For SOAP access provide
