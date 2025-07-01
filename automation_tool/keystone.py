@@ -246,7 +246,6 @@ class KeystoneSupplier(Supplier):
                 ftp = ftplib.FTP_TLS()
                 ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
                 ftp.connect(host, port, timeout=10)
-                ftp.auth()
                 ftp.login(user, password)
                 ftp.prot_p()
                 ftp.set_pasv(True)

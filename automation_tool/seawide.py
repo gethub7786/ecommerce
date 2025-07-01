@@ -177,7 +177,6 @@ class SeawideSupplier(Supplier):
             elif protocol == 'implicit-ftps':
                 ftp = ftplib.FTP_TLS()
                 ftp.connect(host, port, timeout=10)
-                ftp.auth()
                 ftp.login(user, password)
                 ftp.prot_p()
                 return ftp
