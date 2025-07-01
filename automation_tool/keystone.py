@@ -86,7 +86,7 @@ class KeystoneSupplier(Supplier):
             print(msg)
             return False
 
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com/">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
     <ekey:GetInventoryUpdates>
@@ -212,7 +212,7 @@ class KeystoneSupplier(Supplier):
             print(msg)
             return
 
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com/">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
     <ekey:GetInventoryFull>
@@ -322,7 +322,7 @@ class KeystoneSupplier(Supplier):
             logging.warning('Keystone credentials missing')
             return
         os.makedirs(out_dir, exist_ok=True)
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com/">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
     <ekey:GetInventoryQuantityFull>
