@@ -1,6 +1,12 @@
+"""Console entry point for the automation tool."""
+
 import logging
 import os
-"""Console entry point for the automation tool."""
+import sys
+
+# Allow running this file directly by adjusting sys.path
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from automation_tool import (
     KeystoneSupplier,
