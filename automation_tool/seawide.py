@@ -30,14 +30,12 @@ class SeawideSupplier(Supplier):
         """Prompt for FTP access details."""
         user = input('FTP User: ')
         password = input('FTP Password: ')
-        remote_dir = input('Remote Folder (optional): ')
-        remote_file = input('Remote File (optional): ')
+        remote_dir = input('Remote Folder (default /): ') or '/'
+        remote_file = input('Remote File (default Inventory.csv): ') or 'Inventory.csv'
         self.set_credential('ftp_user', user)
         self.set_credential('ftp_password', password)
-        if remote_dir:
-            self.set_credential('ftp_remote_dir', remote_dir)
-        if remote_file:
-            self.set_credential('remote_update_file', remote_file)
+        self.set_credential('ftp_remote_dir', remote_dir)
+        self.set_credential('remote_update_file', remote_file)
         print('FTP credentials saved.')
 
     # Primary method: SOAP API inventory tracking
@@ -60,11 +58,11 @@ class SeawideSupplier(Supplier):
     # Secondary method: FTP download
     def fetch_inventory_secondary(self) -> None:
         """Retrieve the inventory update file via FTP with progress output."""
-        remote_file = self.get_credential('remote_update_file')
+        remote_file = self.get_credential('remote_update_file', 'Inventory.csv')
         if not remote_file:
-            remote_file = input('Remote file name to download: ')
+            remote_file = 'Inventory.csv'
             self.set_credential('remote_update_file', remote_file)
-        remote_dir = self.get_credential('ftp_remote_dir', '')
+        remote_dir = self.get_credential('ftp_remote_dir', '/')
         remote_path = f"{remote_dir.rstrip('/')}/{remote_file}" if remote_dir else remote_file
 
         ftp = self._ftp_connect()
