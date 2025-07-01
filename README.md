@@ -8,7 +8,7 @@ This repository contains utilities for managing inventory data and simple suppli
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates`. A **secondary** FTP method can download the same update file when FTP credentials are supplied.
 * **CWR** - downloads the CSV feed and optionally merges a SKU mapping. A force full inventory option resets the timestamp to 1970.
-* **Seawide** - can retrieve inventory through a SOAP API using account credentials or fall back to FTP downloads. The SOAP mode uses `GetInventoryFull` and `GetInventoryUpdates` for full or incremental data.
+* **Seawide** - the **primary** inventory method uses the SOAP API (`GetInventoryFull` and `GetInventoryUpdates`). A **secondary** FTP method can download the same files when FTP credentials are supplied.
 
 Keystone and Seawide support optional FTP credentials. Provide `ftp_host`,
 `ftp_user`, `ftp_password`, `ftp_port` and `ftp_protocol` through the menu

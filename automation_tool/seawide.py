@@ -13,22 +13,21 @@ class SeawideSupplier(Supplier):
     def __init__(self):
         super().__init__('Seawide', 'seawide.json')
 
-    def fetch_inventory(self) -> None:
-        """Retrieve incremental inventory via SOAP or FTP."""
+    # Primary method: SOAP API inventory tracking
+    def fetch_inventory_primary(self) -> None:
         account = self.get_credential('account_number')
         key = self.get_credential('api_key')
-        if account and key:
-            self._fetch_inventory_soap(account, key)
-        else:
-            self.fetch_inventory_update()
-
-    def fetch_inventory_update(self) -> None:
-        account = self.get_credential('account_number')
-        key = self.get_credential('api_key')
-        if account and key:
-            self._fetch_inventory_update_soap(account, key)
+        if not account or not key:
+            logging.warning('Seawide API credentials missing')
             return
+        self._fetch_inventory_update_soap(account, key)
 
+    # Backwards compatible alias
+    def fetch_inventory(self) -> None:
+        self.fetch_inventory_primary()
+
+    # Secondary method: FTP download
+    def fetch_inventory_secondary(self) -> None:
         host = self.get_credential('host')
         user = self.get_credential('username')
         password = self.get_credential('password')
