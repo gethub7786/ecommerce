@@ -31,7 +31,6 @@ SCHEDULES = {
 }
 
 catalog_jobs = {}
-
 jobs = {}
 
 def schedule_function(name, func, interval, store):
@@ -76,49 +75,64 @@ def show_supplier_menu(key):
     supplier = SUPPLIERS[key]
     while True:
         print(f"\nSupplier: {supplier.name}")
-        print("1. Set Credential")
-        print("2. Fetch Inventory Now")
-        print("3. Schedule Inventory")
+        opts = {}
+        idx = 1
+        print(f"{idx}. Set Credential"); opts[str(idx)] = 'cred'; idx += 1
+        print(f"{idx}. Fetch Inventory Update"); opts[str(idx)] = 'inv'; idx += 1
+        if hasattr(supplier, 'fetch_inventory_full'):
+            print(f"{idx}. Fetch Full Inventory"); opts[str(idx)] = 'inv_full'; idx += 1
+        print(f"{idx}. Schedule Inventory Update"); opts[str(idx)] = 'sch_inv'; idx += 1
+        if hasattr(supplier, 'fetch_inventory_full'):
+            print(f"{idx}. Schedule Full Inventory"); opts[str(idx)] = 'sch_inv_full'; idx += 1
         if hasattr(supplier, 'fetch_catalog'):
-            print("4. Fetch Catalog Now")
-            print("5. Schedule Catalog")
-            print("6. Manage Catalog")
+            print(f"{idx}. Fetch Catalog Now"); opts[str(idx)] = 'cat'; idx += 1
+            print(f"{idx}. Schedule Catalog"); opts[str(idx)] = 'sch_cat'; idx += 1
+            print(f"{idx}. Manage Catalog"); opts[str(idx)] = 'manage_cat'; idx += 1
         if hasattr(supplier, 'test_connection'):
-            print("7. Test Connection")
-            back_opt = '8'
-        else:
-            back_opt = '4' if not hasattr(supplier, 'fetch_catalog') else '7'
-        print(f"{back_opt}. Back")
+            print(f"{idx}. Test Connection"); opts[str(idx)] = 'test'; idx += 1
+        print(f"{idx}. Back"); back_val = str(idx)
+
         choice = input("Select option: ")
-        if choice == '1':
+        if choice == back_val:
+            break
+        action = opts.get(choice)
+        if action == 'cred':
             k = input("Credential name: ")
             v = input("Value: ")
             supplier.set_credential(k, v)
             print("Saved.")
-        elif choice == '2':
+        elif action == 'inv':
             supplier.fetch_inventory()
-        elif choice == '3':
+        elif action == 'inv_full':
+            supplier.fetch_inventory_full()
+        elif action == 'sch_inv':
             print("Select schedule interval:")
             for n, (label, _) in SCHEDULES.items():
                 print(f"{n}. {label}")
             opt = input("Choice: ")
             if opt in SCHEDULES:
                 schedule_supplier(supplier, SCHEDULES[opt][1])
-        elif hasattr(supplier, 'fetch_catalog') and choice == '4':
+        elif action == 'sch_inv_full':
+            if hasattr(supplier, 'fetch_inventory_full'):
+                print("Select schedule interval:")
+                for n, (label, _) in SCHEDULES.items():
+                    print(f"{n}. {label}")
+                opt = input("Choice: ")
+                if opt in SCHEDULES:
+                    schedule_function(f'{supplier.name}_full', supplier.fetch_inventory_full, SCHEDULES[opt][1], jobs)
+        elif action == 'cat':
             supplier.fetch_catalog()
-        elif hasattr(supplier, 'fetch_catalog') and choice == '5':
+        elif action == 'sch_cat':
             print("Select schedule interval:")
             for n, (label, _) in SCHEDULES.items():
                 print(f"{n}. {label}")
             opt = input("Choice: ")
             if opt in SCHEDULES:
                 schedule_catalog(supplier, SCHEDULES[opt][1])
-        elif hasattr(supplier, 'fetch_catalog') and choice == '6':
+        elif action == 'manage_cat':
             show_catalog_menu(supplier)
-        elif hasattr(supplier, 'test_connection') and choice == '7':
+        elif action == 'test':
             supplier.test_connection()
-        elif choice == back_opt:
-            break
         else:
             print("Invalid option")
 

@@ -1,8 +1,30 @@
 import logging
 import urllib.request
+import xml.etree.ElementTree as ET
+import csv
 import os
 from .base import Supplier
 from . import catalog
+
+
+def _parse_dataset(xml_data: bytes) -> list:
+    """Parse Keystone SOAP dataset XML into rows."""
+    try:
+        root = ET.fromstring(xml_data)
+    except ET.ParseError:
+        return []
+
+    diffgram = root.find('.//{urn:schemas-microsoft-com:xml-diffgram-v1}diffgram')
+    if diffgram is None:
+        return []
+    dataset = diffgram.find('NewDataSet')
+    if dataset is None:
+        return []
+    rows = []
+    for table in dataset.findall('Table'):
+        row = {child.tag: (child.text or '') for child in table}
+        rows.append(row)
+    return rows
 
 class KeystoneSupplier(Supplier):
     """Keystone Automotive supplier implementation."""
@@ -40,6 +62,48 @@ class KeystoneSupplier(Supplier):
             logging.info('Downloaded %s bytes of Keystone inventory', len(data))
         except Exception as exc:
             logging.exception('Failed to fetch Keystone inventory: %s', exc)
+
+    def fetch_inventory_full(self) -> None:
+        """Retrieve the full Keystone inventory and store it as CSV."""
+        account = self.get_credential('account_number')
+        key = self.get_credential('security_key')
+        output = self.get_credential('full_output', 'keystone_inventory_full.csv')
+        if not account or not key:
+            logging.warning('Keystone credentials missing')
+            return
+
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <ekey:GetInventoryFull>
+      <ekey:Key>{key}</ekey:Key>
+      <ekey:FullAccountNo>{account}</ekey:FullAccountNo>
+    </ekey:GetInventoryFull>
+  </soapenv:Body>
+</soapenv:Envelope>'''
+
+        req = urllib.request.Request(
+            'http://order.ekeystone.com/wselectronicorder/electronicorder.asmx',
+            data=envelope.encode('utf-8'),
+            headers={
+                'Content-Type': 'text/xml; charset=utf-8',
+                'SOAPAction': 'http://eKeystone.com/GetInventoryFull',
+            },
+        )
+        try:
+            with urllib.request.urlopen(req) as resp:
+                xml_data = resp.read()
+            rows = _parse_dataset(xml_data)
+            if rows:
+                with open(output, 'w', newline='') as f:
+                    writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+                    writer.writeheader()
+                    writer.writerows(rows)
+                logging.info('Saved Keystone full inventory to %s', output)
+            else:
+                logging.warning('No data returned from Keystone')
+        except Exception as exc:
+            logging.exception('Failed to fetch Keystone full inventory: %s', exc)
 
     def test_connection(self) -> None:
         """Simple connection test to the SOAP endpoint."""
