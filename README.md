@@ -43,11 +43,14 @@ the console and saved to the log for easier debugging.
 
 ```bash
 python -m automation_tool
-``` 
+```
 or run the script directly:
 ```bash
 python automation_tool/main.py
 ```
+If you encounter an ``ImportError`` mentioning ``suppliers`` when launching the
+tool, make sure you are using the current package layout and run the command
+from the repository root as shown above.
 
 From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.  Keystone, CWR and Seawide offer both update and full inventory downloads which can also be scheduled.
 For each supplier you may test the connection and schedule catalog downloads at intervals of **5 minutes**, **1 hour**, **1 day** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
