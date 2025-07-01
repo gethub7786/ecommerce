@@ -7,7 +7,7 @@ This repository contains utilities for managing inventory data and simple suppli
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
 * **Keystone** - contacts the SOAP web service with the provided account and security key. Full or incremental inventory can be downloaded.
-* **CWR** - downloads the CSV feed and optionally merges a SKU mapping.
+* **CWR** - downloads the CSV feed and optionally merges a SKU mapping. A force full inventory option resets the timestamp to 1970.
 * **Seawide** - connects to the FTP server and retrieves inventory files. A full inventory download is also available.
 
 All suppliers now include utilities to test their connection and download a
@@ -26,7 +26,7 @@ or run the script directly:
 python automation_tool/main.py
 ```
 
-From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.  Keystone and Seawide offer both update and full inventory downloads which can also be scheduled.
+From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.  Keystone, CWR and Seawide offer both update and full inventory downloads which can also be scheduled.
 For each supplier you may test the connection and schedule catalog downloads at intervals of **5 minutes**, **1 hour**, **1 day** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
 
 ## Inventory Processor

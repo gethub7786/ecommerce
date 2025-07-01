@@ -35,6 +35,23 @@ class CwrSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch CWR inventory: %s', exc)
 
+    def fetch_inventory_full(self) -> None:
+        """Force download the entire inventory feed."""
+        base_url = self.get_credential('base_url')
+        mapping_file = self.get_credential('mapping_file')
+        output = self.get_credential('full_output', 'cwr_inventory_full.txt')
+        if not base_url:
+            logging.warning('CWR base_url credential missing')
+            return
+        try:
+            rows = download_inventory(base_url, 0)
+            if mapping_file:
+                rows = merge_mapping(rows, Path(mapping_file))
+            save_inventory(rows, Path(output))
+            logging.info('Saved CWR full inventory to %s', output)
+        except Exception as exc:
+            logging.exception('Failed to fetch CWR full inventory: %s', exc)
+
     def test_connection(self) -> None:
         base_url = self.get_credential('base_url')
         if not base_url:
