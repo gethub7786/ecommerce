@@ -99,6 +99,11 @@ class CwrSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 
+    def force_full_sync(self) -> None:
+        """Reset timestamp and fetch stock feed from the beginning of time."""
+        self._set_last_ohtime(0)
+        self.fetch_inventory_stock()
+
     def fetch_inventory_stock(self) -> None:
         """Fetch inventory quantities using ohtime."""
         output = self.get_credential('stock_output', 'cwr_inventory_stock.txt')

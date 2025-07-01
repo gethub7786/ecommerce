@@ -7,7 +7,7 @@ This repository contains utilities for managing inventory data and simple suppli
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails.
-* **CWR** - requires a feed **ID** entered via *Set Credential*. The tool builds the feed URLs using that ID. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. The "Force Full Inventory" action resets the stored timestamp to 1970 so the next stock update fetches all items.
+* **CWR** - requires a feed **ID** entered via *Set Credential*. The tool builds the feed URLs using that ID. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. Use the **Force Full Inventory** option to reset the timestamp to 1970 and immediately pull all items.
 * **Seawide** - the **primary** inventory method uses the same Keystone SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) at `http://order.ekeystone.com/wselectronicorder/electronicorder.asmx` and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. In each supplier menu

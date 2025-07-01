@@ -97,6 +97,8 @@ def show_supplier_menu(key):
             print(f"{idx}. Fetch Inventory Update via FTP (Secondary)"); opts[str(idx)] = 'inv_sec'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):
             print(f"{idx}. Fetch Full Inventory"); opts[str(idx)] = 'inv_full'; idx += 1
+        if hasattr(supplier, 'force_full_sync'):
+            print(f"{idx}. Force Full Inventory"); opts[str(idx)] = 'force_full'; idx += 1
         print(f"{idx}. Schedule Inventory Update"); opts[str(idx)] = 'sch_inv'; idx += 1
         if hasattr(supplier, 'fetch_inventory_stock'):
             print(f"{idx}. Schedule Inventory Stock"); opts[str(idx)] = 'sch_inv_stock'; idx += 1
@@ -129,6 +131,9 @@ def show_supplier_menu(key):
             supplier.fetch_inventory()
         elif action == 'inv_full':
             supplier.fetch_inventory_full()
+        elif action == 'force_full':
+            if hasattr(supplier, 'force_full_sync'):
+                supplier.force_full_sync()
         elif action == 'inv_sec':
             if hasattr(supplier, 'fetch_inventory_secondary'):
                 supplier.fetch_inventory_secondary()
