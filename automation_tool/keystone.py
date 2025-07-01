@@ -274,7 +274,10 @@ class KeystoneSupplier(Supplier):
                     print('Login failed (530). Credentials incorrect.')
                     return None
                 raise
-            ftp.prot_p()
+            # Keystone uses implicit FTPS so the control socket is already
+            # wrapped with TLS. The server does not support a separate
+            # PROT negotiation, so skip ftp.prot_p() and simply enable
+            # passive mode for the data connection.
             ftp.set_pasv(True)
             return ftp
         except Exception as exc:

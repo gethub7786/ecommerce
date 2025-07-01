@@ -182,7 +182,9 @@ class SeawideSupplier(Supplier):
                     print('Login failed (530). Credentials incorrect.')
                     return None
                 raise
-            ftp.prot_p()
+            # Seawide also uses implicit FTPS so the socket is wrapped in TLS
+            # as soon as we connect. The server does not expect a PROT
+            # command, so just enable passive mode for data transfers.
             ftp.set_pasv(True)
             return ftp
         except Exception as exc:
