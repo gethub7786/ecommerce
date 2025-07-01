@@ -86,7 +86,7 @@ class KeystoneSupplier(Supplier):
             print(msg)
             return False
 
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com/">
   <soapenv:Header/>
   <soapenv:Body>
     <ekey:GetInventoryUpdates>
@@ -101,7 +101,7 @@ class KeystoneSupplier(Supplier):
             data=envelope.encode('utf-8'),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
-                'SOAPAction': 'http://eKeystone.com/GetInventoryUpdates',
+                'SOAPAction': '"http://eKeystone.com/GetInventoryUpdates"',
             },
         )
         try:
@@ -212,7 +212,7 @@ class KeystoneSupplier(Supplier):
             print(msg)
             return
 
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com/">
   <soapenv:Header/>
   <soapenv:Body>
     <ekey:GetInventoryFull>
@@ -227,7 +227,7 @@ class KeystoneSupplier(Supplier):
             data=envelope.encode('utf-8'),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
-                'SOAPAction': 'http://eKeystone.com/GetInventoryFull',
+                'SOAPAction': '"http://eKeystone.com/GetInventoryFull"',
             },
         )
         try:
@@ -322,7 +322,7 @@ class KeystoneSupplier(Supplier):
             logging.warning('Keystone credentials missing')
             return
         os.makedirs(out_dir, exist_ok=True)
-        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
+        envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com/">
   <soapenv:Header/>
   <soapenv:Body>
     <ekey:GetInventoryQuantityFull>
@@ -336,7 +336,7 @@ class KeystoneSupplier(Supplier):
             data=envelope.encode('utf-8'),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
-                'SOAPAction': 'http://eKeystone.com/GetInventoryQuantityFull',
+                'SOAPAction': '"http://eKeystone.com/GetInventoryQuantityFull"',
             },
         )
         try:
