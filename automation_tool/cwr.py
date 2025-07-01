@@ -7,10 +7,27 @@ from pathlib import Path
 from .base import Supplier
 from . import catalog
 from inventory_processor import (
-    build_url,
     download_inventory,
     merge_mapping,
     save_inventory,
+)
+
+FULL_SYNC_URL = (
+    "https://cwrdistribution.com/feeds/productdownload.php"
+    "?id=MPB_NDI0OTY5NDI0OTY5MjM2MQ=="
+    "&version=3"
+    "&format=csv"
+    "&fields=sku,price,qty,qtynj,qtyfl,upc,mfgn,sdesc"
+    "&time=0"
+)
+
+STOCK_UPDATE_URL = (
+    "https://cwrdistribution.com/feeds/productdownload.php"
+    "?id=MPB_NDI0OTY5NDI0OTY5MjM2MQ=="
+    "&version=3"
+    "&format=csv"
+    "&fields=sku,qty,qtynj,qtyfl,upc,mfgn"
+    "&ohtime={ts}"
 )
 
 
@@ -20,12 +37,6 @@ class CwrSupplier(Supplier):
     """CWR Distribution supplier implementation."""
     def __init__(self):
         super().__init__('CWR', 'cwr.json')
-
-    def configure_credentials(self) -> None:
-        """Prompt for the full feed URL prefix used to build requests."""
-        base_url = input('Feed URL (without time/ohtime): ')
-        self.set_credential('base_url', base_url)
-        print('Credentials saved.')
 
     def _get_last_ohtime(self) -> int:
         saved = self.get_credential('last_ohtime')
@@ -37,47 +48,39 @@ class CwrSupplier(Supplier):
         self.set_credential('last_ohtime', str(ts))
 
     def fetch_inventory(self) -> None:
-        base_url = self.get_credential('base_url')
-        if not base_url:
-            logging.warning('CWR feed URL missing')
-            print('Missing feed URL')
-            return
         # Use the inventory-only feed as the primary update
         self.fetch_inventory_stock()
 
     def fetch_inventory_full(self) -> None:
         """Force download the entire inventory feed and reset the timestamp."""
-        base_url = self.get_credential('base_url')
-        if not base_url:
-            logging.warning('CWR feed URL missing')
-            print('Missing feed URL')
-            return
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('full_output', 'cwr_inventory_full.txt')
-        url = build_url(base_url, 0)
+        url = FULL_SYNC_URL
         try:
             rows = download_inventory(url)
+            if len(rows) == 0:
+                logging.warning('CWR full feed returned headers only')
+                return
             if mapping_file:
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
+            self._set_last_ohtime(int(datetime.now().timestamp()))
         except Exception as exc:
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 
     def fetch_inventory_stock(self) -> None:
         """Fetch inventory quantities using ohtime."""
-        base_url = self.get_credential('base_url')
-        if not base_url:
-            logging.warning('CWR feed URL missing')
-            print('Missing feed URL')
-            return
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('stock_output', 'cwr_inventory_stock.txt')
 
         since = self._get_last_ohtime()
-        url = build_url(base_url, since, inventory_only=True)
+        url = STOCK_UPDATE_URL.format(ts=since)
         try:
             rows = download_inventory(url, inventory_only=True)
+            if len(rows) == 0:
+                logging.warning('CWR stock feed returned headers only')
+                return
             if mapping_file:
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
@@ -87,11 +90,7 @@ class CwrSupplier(Supplier):
             logging.exception('Failed to fetch CWR stock inventory: %s', exc)
 
     def test_connection(self) -> None:
-        base_url = self.get_credential('base_url')
-        if not base_url:
-            print('Missing feed URL')
-            return
-        url = build_url(base_url, 0)
+        url = FULL_SYNC_URL
         try:
             with urllib.request.urlopen(url, timeout=10) as resp:
                 if resp.status == 200:
@@ -105,12 +104,7 @@ class CwrSupplier(Supplier):
             print('Connection failed:', exc)
 
     def fetch_catalog(self) -> None:
-        base_url = self.get_credential('base_url')
-        if not base_url:
-            logging.warning('CWR feed URL missing')
-            print('Missing feed URL')
-            return
-        url = build_url(base_url, 0)
+        url = FULL_SYNC_URL
         mapping_file = self.get_credential('mapping_file')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')

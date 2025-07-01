@@ -7,7 +7,7 @@ This repository contains utilities for managing inventory data and simple suppli
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails.
-* **CWR** - downloads the CSV feed using a base URL that you supply (without the time parameters). A full sync with `time=0` runs every 48 hours and inventory-only updates with `ohtime` run frequently. Both feeds include the location quantities `qtynj` and `qtyfl`. A force full inventory option resets the timestamp to 1970 and optional SKU mapping can be applied.
+* **CWR** - uses fixed feed URLs. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. A force full inventory option resets the timestamp to 1970 and optional SKU mapping can be applied.
 * **Seawide** - the **primary** inventory method uses the same Keystone SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) at `http://order.ekeystone.com/wselectronicorder/electronicorder.asmx` and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. In each supplier menu
@@ -64,7 +64,7 @@ The CWR integration runs a full sync every 48 hours using `time=0` and inventory
 
 ```bash
 python inventory_processor.py \
-  --base-url YOUR_BASE_URL \
+  --base-url "https://cwrdistribution.com/feeds/productdownload.php?id=MPB_NDI0OTY5NDI0OTY5MjM2MQ==&version=3&format=csv" \
   --since 1717900000 \
   --mapping mapping.csv \
   --output final_inventory.txt
