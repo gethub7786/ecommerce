@@ -74,24 +74,26 @@ def merge_mapping(rows: list, mapping_path: Path) -> list:
         mapping = {r['sku']: r['modified_sku'] for r in csv.DictReader(f)}
     merged = []
     for r in rows:
-        sku = r['SKU']
+        sku = r.get('SKU')
         if sku in mapping:
             merged.append({
                 'SKU': mapping[sku],
-                'Quantity': r['Quantity'],
-                'qtynj': r.get('qtynj', 0),
-                'qtyfl': r.get('qtyfl', 0),
-                'handling-time': 0,
+                'QUANTITY': r.get('QUANTITY', r.get('Quantity', '')),
+                'NEWJERSEY STOCK': r.get('NEWJERSEY STOCK', r.get('qtynj', 0)),
+                'FLORIDA STOCK': r.get('FLORIDA STOCK', r.get('qtyfl', 0)),
+                'UPC/EAN': r.get('UPC/EAN', ''),
+                'Manufacturer': r.get('Manufacturer', ''),
             })
     return merged
 
 
 def save_inventory(rows: list, output: Path):
+    fieldnames = ['SKU', 'QUANTITY', 'NEWJERSEY STOCK', 'FLORIDA STOCK', 'UPC/EAN', 'Manufacturer']
     with open(output, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=['SKU', 'Quantity', 'qtynj', 'qtyfl', 'handling-time'], delimiter='\t')
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
         for r in rows:
-            writer.writerow(r)
+            writer.writerow({k: r.get(k, '') for k in fieldnames})
 
 
 def main(base_url: str, since: int, mapping: Path, output: Path, *, inventory_only: bool = False):

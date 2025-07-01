@@ -82,7 +82,17 @@ class CwrSupplier(Supplier):
             if len(rows) == 0:
                 logging.warning('CWR full feed returned headers only')
                 return
-            save_inventory(rows, Path(output))
+            normalized = []
+            for row in rows:
+                row = row.copy()
+                row['SKU'] = row.pop('sku', row.get('SKU', ''))
+                row['QUANTITY'] = row.pop('qty', row.get('Quantity', ''))
+                row['NEWJERSEY STOCK'] = row.pop('qtynj', '')
+                row['FLORIDA STOCK'] = row.pop('qtyfl', '')
+                row['UPC/EAN'] = row.pop('upc', row.get('UPC/EAN', ''))
+                row['Manufacturer'] = row.pop('mfgn', row.get('Manufacturer', ''))
+                normalized.append(row)
+            save_inventory(normalized, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
             # Reset ohtime so the next stock update fetches everything
             self._set_last_ohtime(0)
@@ -103,7 +113,17 @@ class CwrSupplier(Supplier):
             if len(rows) == 0:
                 logging.warning('CWR stock feed returned headers only')
                 return
-            save_inventory(rows, Path(output))
+            normalized = []
+            for row in rows:
+                row = row.copy()
+                row['SKU'] = row.pop('sku', row.get('SKU', ''))
+                row['QUANTITY'] = row.pop('qty', row.get('Quantity', ''))
+                row['NEWJERSEY STOCK'] = row.pop('qtynj', '')
+                row['FLORIDA STOCK'] = row.pop('qtyfl', '')
+                row['UPC/EAN'] = row.pop('upc', row.get('UPC/EAN', ''))
+                row['Manufacturer'] = row.pop('mfgn', row.get('Manufacturer', ''))
+                normalized.append(row)
+            save_inventory(normalized, Path(output))
             logging.info('Saved CWR stock inventory to %s', output)
             self._set_last_ohtime(int(datetime.now().timestamp()))
         except Exception as exc:
