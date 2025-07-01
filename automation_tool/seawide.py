@@ -11,12 +11,16 @@ class SeawideSupplier(Supplier):
         super().__init__('Seawide', 'seawide.json')
 
     def fetch_inventory(self) -> None:
+        """Download incremental inventory from FTP."""
+        self.fetch_inventory_update()
+
+    def fetch_inventory_update(self) -> None:
         host = self.get_credential('host')
         user = self.get_credential('username')
         password = self.get_credential('password')
         port = int(self.get_credential('port', 21))
-        remote_file = self.get_credential('remote_file', 'inventory.csv')
-        output = self.get_credential('output', 'seawide_inventory.csv')
+        remote_file = self.get_credential('remote_update_file', 'inventory_update.csv')
+        output = self.get_credential('output', 'seawide_inventory_update.csv')
 
         if not host or not user or not password:
             logging.warning('Seawide FTP credentials missing')
@@ -29,7 +33,7 @@ class SeawideSupplier(Supplier):
                 ftp.prot_p()
                 with open(output, 'wb') as f:
                     ftp.retrbinary(f'RETR {remote_file}', f.write)
-            logging.info('Downloaded Seawide inventory to %s', output)
+            logging.info('Downloaded Seawide inventory update to %s', output)
         except Exception as exc:
             logging.exception('Failed to fetch Seawide inventory: %s', exc)
 

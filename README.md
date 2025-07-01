@@ -6,9 +6,9 @@ This repository contains utilities for managing inventory data and simple suppli
 
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
-* **Keystone** - contacts the SOAP web service with the provided account and security key. Full or incremental inventory can be downloaded.
+* **Keystone** - contacts the SOAP web service with the provided account and security key. Full or incremental inventory can be downloaded. The update option uses `GetInventoryUpdates` for per-warehouse quantities.
 * **CWR** - downloads the CSV feed and optionally merges a SKU mapping. A force full inventory option resets the timestamp to 1970.
-* **Seawide** - connects to the FTP server and retrieves inventory files. A full inventory download is also available.
+* **Seawide** - connects to the FTP server and retrieves inventory files. Both incremental and full inventory files can be downloaded via FTP.
 
 All suppliers now include utilities to test their connection and download a
 vendor catalog. Catalogs are stored under `automation_tool/data/catalogs` and can

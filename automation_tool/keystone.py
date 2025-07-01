@@ -32,8 +32,10 @@ class KeystoneSupplier(Supplier):
         super().__init__('Keystone', 'keystone.json')
 
     def fetch_inventory(self) -> None:
+        """Retrieve incremental inventory with warehouse breakdown."""
         account = self.get_credential('account_number')
         key = self.get_credential('security_key')
+        output = self.get_credential('output', 'keystone_inventory_update.csv')
         if not account or not key:
             logging.warning('Keystone credentials missing')
             return
@@ -41,10 +43,10 @@ class KeystoneSupplier(Supplier):
         envelope = f'''<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ekey="http://eKeystone.com">
   <soapenv:Header/>
   <soapenv:Body>
-    <ekey:GetInventoryQuantityUpdates>
+    <ekey:GetInventoryUpdates>
       <ekey:Key>{key}</ekey:Key>
       <ekey:FullAccountNo>{account}</ekey:FullAccountNo>
-    </ekey:GetInventoryQuantityUpdates>
+    </ekey:GetInventoryUpdates>
   </soapenv:Body>
 </soapenv:Envelope>'''
 
@@ -53,13 +55,21 @@ class KeystoneSupplier(Supplier):
             data=envelope.encode('utf-8'),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
-                'SOAPAction': 'http://eKeystone.com/GetInventoryQuantityUpdates',
+                'SOAPAction': 'http://eKeystone.com/GetInventoryUpdates',
             },
         )
         try:
             with urllib.request.urlopen(req) as resp:
-                data = resp.read()
-            logging.info('Downloaded %s bytes of Keystone inventory', len(data))
+                xml_data = resp.read()
+            rows = _parse_dataset(xml_data)
+            if rows:
+                with open(output, 'w', newline='') as f:
+                    writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+                    writer.writeheader()
+                    writer.writerows(rows)
+                logging.info('Saved Keystone inventory update to %s', output)
+            else:
+                logging.warning('No data returned from Keystone update')
         except Exception as exc:
             logging.exception('Failed to fetch Keystone inventory: %s', exc)
 
