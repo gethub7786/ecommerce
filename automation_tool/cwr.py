@@ -12,18 +12,18 @@ from inventory_processor import (
     save_inventory,
 )
 
-FULL_SYNC_URL = (
+FULL_SYNC_URL_TMPL = (
     "https://cwrdistribution.com/feeds/productdownload.php"
-    "?id=MPB_NDI0OTY5NDI0OTY5MjM2MQ=="
+    "?id={id}"
     "&version=3"
     "&format=csv"
     "&fields=sku,price,qty,qtynj,qtyfl,upc,mfgn,sdesc"
     "&time=0"
 )
 
-STOCK_UPDATE_URL = (
+STOCK_UPDATE_URL_TMPL = (
     "https://cwrdistribution.com/feeds/productdownload.php"
-    "?id=MPB_NDI0OTY5NDI0OTY5MjM2MQ=="
+    "?id={id}"
     "&version=3"
     "&format=csv"
     "&fields=sku,qty,qtynj,qtyfl,upc,mfgn"
@@ -37,6 +37,26 @@ class CwrSupplier(Supplier):
     """CWR Distribution supplier implementation."""
     def __init__(self):
         super().__init__('CWR', 'cwr.json')
+
+    def configure_credentials(self) -> None:
+        """Prompt for the CWR feed ID."""
+        feed_id = input('Feed ID: ')
+        self.set_credential('feed_id', feed_id)
+        print('Feed ID saved.')
+
+    def _full_url(self) -> str:
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            print('Missing feed ID; configure credentials first.')
+            raise ValueError('Feed ID not configured')
+        return FULL_SYNC_URL_TMPL.format(id=feed_id)
+
+    def _stock_url(self, ts: int) -> str:
+        feed_id = self.get_credential('feed_id')
+        if not feed_id:
+            print('Missing feed ID; configure credentials first.')
+            raise ValueError('Feed ID not configured')
+        return STOCK_UPDATE_URL_TMPL.format(id=feed_id, ts=ts)
 
     def _get_last_ohtime(self) -> int:
         saved = self.get_credential('last_ohtime')
@@ -55,7 +75,10 @@ class CwrSupplier(Supplier):
         """Force download the entire inventory feed and reset the timestamp."""
         mapping_file = self.get_credential('mapping_file')
         output = self.get_credential('full_output', 'cwr_inventory_full.txt')
-        url = FULL_SYNC_URL
+        try:
+            url = self._full_url()
+        except ValueError:
+            return
         try:
             rows = download_inventory(url)
             if len(rows) == 0:
@@ -65,7 +88,8 @@ class CwrSupplier(Supplier):
                 rows = merge_mapping(rows, Path(mapping_file))
             save_inventory(rows, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
-            self._set_last_ohtime(int(datetime.now().timestamp()))
+            # Reset ohtime so the next stock update fetches everything
+            self._set_last_ohtime(0)
         except Exception as exc:
             logging.exception('Failed to fetch CWR full inventory: %s', exc)
 
@@ -75,7 +99,10 @@ class CwrSupplier(Supplier):
         output = self.get_credential('stock_output', 'cwr_inventory_stock.txt')
 
         since = self._get_last_ohtime()
-        url = STOCK_UPDATE_URL.format(ts=since)
+        try:
+            url = self._stock_url(since)
+        except ValueError:
+            return
         try:
             rows = download_inventory(url, inventory_only=True)
             if len(rows) == 0:
@@ -90,7 +117,10 @@ class CwrSupplier(Supplier):
             logging.exception('Failed to fetch CWR stock inventory: %s', exc)
 
     def test_connection(self) -> None:
-        url = FULL_SYNC_URL
+        try:
+            url = self._full_url()
+        except ValueError:
+            return
         try:
             with urllib.request.urlopen(url, timeout=10) as resp:
                 if resp.status == 200:
@@ -104,7 +134,10 @@ class CwrSupplier(Supplier):
             print('Connection failed:', exc)
 
     def fetch_catalog(self) -> None:
-        url = FULL_SYNC_URL
+        try:
+            url = self._full_url()
+        except ValueError:
+            return
         mapping_file = self.get_credential('mapping_file')
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')
