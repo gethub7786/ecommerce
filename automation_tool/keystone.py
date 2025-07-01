@@ -59,23 +59,12 @@ class KeystoneSupplier(Supplier):
 
     def configure_ftp(self) -> None:
         """Prompt for FTP authentication details."""
-        host = input('FTP Host: ')
         user = input('FTP User: ')
         password = input('FTP Password: ')
-        port = input('FTP Port (default 990): ') or '990'
-        protocol = (
-            input(
-                'FTP Protocol (ftp/sftp/implicit-ftps/explicit-ftps, default implicit-ftps): '
-            )
-            or 'implicit-ftps'
-        )
         remote_dir = input('Remote Folder (optional): ')
         remote_file = input('Remote File (optional): ')
-        self.set_credential('ftp_host', host)
         self.set_credential('ftp_user', user)
         self.set_credential('ftp_password', password)
-        self.set_credential('ftp_port', port)
-        self.set_credential('ftp_protocol', protocol)
         if remote_dir:
             self.set_credential('ftp_remote_dir', remote_dir)
         if remote_file:
@@ -257,62 +246,28 @@ class KeystoneSupplier(Supplier):
             print('Error fetching Keystone full inventory:', exc)
 
     def _ftp_connect(self):
-        host = self.get_credential('ftp_host')
+        """Connect to Keystone's implicit FTPS server."""
         user = self.get_credential('ftp_user')
         password = self.get_credential('ftp_password')
-        port = int(self.get_credential('ftp_port', 990))
-        protocol = self.get_credential('ftp_protocol', 'implicit-ftps').lower()
-        if not host or not user or not password:
+        if not user or not password:
             print('Missing FTP credentials')
             return None
+        host = 'ftp.ekeystone.com'
+        port = 990
         try:
-            import ftplib, ssl
-            if protocol in ("ftp",):
-                ftp = ftplib.FTP()
-                ftp.connect(host, port, timeout=30)
+            import ftplib
+            ftp = ImplicitFTP_TLS()
+            ftp.connect(host, port, timeout=30)
+            try:
                 ftp.login(user, password)
-                ftp.set_pasv(True)
-                return ftp
-            elif protocol in ("ftps", "explicit-ftps"):
-                ftp = ftplib.FTP_TLS()
-                ftp.ssl_version = ssl.PROTOCOL_TLSv1_2
-                ftp.connect(host, port, timeout=30)
-                ftp.login(user, password)
-                ftp.prot_p()
-                ftp.set_pasv(True)
-                return ftp
-            elif protocol == "implicit-ftps":
-                ftp = ImplicitFTP_TLS()
-                ftp.connect(host, port, timeout=30)
-                try:
-                    ftp.login(user, password)
-                except ftplib.error_perm as exc:
-                    if "530" in str(exc):
-                        print("Login failed (530). Credentials incorrect.")
-                        return None
-                    raise
-                ftp.prot_p()
-                ftp.set_pasv(True)
-                return ftp
-            elif protocol == 'sftp':
-                try:
-                    import paramiko
-                except Exception as exc:
-                    logging.error('Paramiko required for SFTP: %s', exc)
-                    print('Paramiko not installed for SFTP')
+            except ftplib.error_perm as exc:
+                if '530' in str(exc):
+                    print('Login failed (530). Credentials incorrect.')
                     return None
-                transport = paramiko.Transport((host, port))
-                try:
-                    transport.connect(username=user, password=password)
-                    client = paramiko.SFTPClient.from_transport(transport)
-                    return SFTPWrapper(client)
-                except Exception as exc:
-                    logging.exception('Keystone SFTP connection failed: %s', exc)
-                    print('Keystone SFTP connection failed:', exc)
-                    return None
-            else:
-                print('Unknown protocol:', protocol)
-                return None
+                raise
+            ftp.prot_p()
+            ftp.set_pasv(True)
+            return ftp
         except Exception as exc:
             logging.exception('Keystone FTP connection failed: %s', exc)
             print('Keystone FTP connection failed:', exc)
