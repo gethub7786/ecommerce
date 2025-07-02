@@ -213,8 +213,16 @@ class CwrSupplier(Supplier):
         try:
             try:
                 total = ftp.size(remote_path)
-            except Exception:
-                total = None
+            except Exception as exc:
+                if 'No such' in str(exc) and remote_path != '/out/catalog.csv':
+                    logging.warning('CWR catalog not found at %s, retrying /out/catalog.csv', remote_path)
+                    remote_path = '/out/catalog.csv'
+                    try:
+                        total = ftp.size(remote_path)
+                    except Exception:
+                        total = None
+                else:
+                    total = None
             downloaded = 0
             with open(output, 'wb') as f:
                 def write_chunk(data):
@@ -228,7 +236,16 @@ class CwrSupplier(Supplier):
                         kb = downloaded // 1024
                         print(f"\rDownloaded {kb} KB", end='', flush=True)
 
-                ftp.retrbinary(f'RETR {remote_path}', write_chunk)
+                try:
+                    ftp.retrbinary(f'RETR {remote_path}', write_chunk)
+                except Exception as exc:
+                    if 'No such' in str(exc) and remote_path != '/out/catalog.csv':
+                        logging.warning('Retrying catalog download at /out/catalog.csv')
+                        remote_path = '/out/catalog.csv'
+                        downloaded = 0
+                        ftp.retrbinary(f'RETR {remote_path}', write_chunk)
+                    else:
+                        raise
             if total:
                 print('\rDownload complete      ')
             else:
