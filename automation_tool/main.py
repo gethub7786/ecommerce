@@ -90,6 +90,8 @@ def show_supplier_menu(key):
         print(f"{idx}. Set Credential"); opts[str(idx)] = 'cred'; idx += 1
         if hasattr(supplier, 'configure_ftp'):
             print(f"{idx}. Set FTP Credentials"); opts[str(idx)] = 'ftpcred'; idx += 1
+        if hasattr(supplier, 'configure_location_mapping'):
+            print(f"{idx}. Configure Location Mapping"); opts[str(idx)] = 'loc_map'; idx += 1
         print(f"{idx}. Fetch Inventory Update"); opts[str(idx)] = 'inv'; idx += 1
         if hasattr(supplier, 'fetch_inventory_stock'):
             print(f"{idx}. Fetch Inventory Stock Only"); opts[str(idx)] = 'inv_stock'; idx += 1
@@ -108,6 +110,8 @@ def show_supplier_menu(key):
             print(f"{idx}. Fetch Catalog Now"); opts[str(idx)] = 'cat'; idx += 1
             print(f"{idx}. Schedule Catalog"); opts[str(idx)] = 'sch_cat'; idx += 1
             print(f"{idx}. Manage Catalog"); opts[str(idx)] = 'manage_cat'; idx += 1
+        if hasattr(supplier, 'upload_multi_location_inventory'):
+            print(f"{idx}. Upload Multi-Location Inventory"); opts[str(idx)] = 'upload_multi'; idx += 1
         if hasattr(supplier, 'test_connection'):
             print(f"{idx}. Test Connection"); opts[str(idx)] = 'test'; idx += 1
         print(f"{idx}. Back"); back_val = str(idx)
@@ -127,6 +131,9 @@ def show_supplier_menu(key):
         elif action == 'ftpcred':
             if hasattr(supplier, 'configure_ftp'):
                 supplier.configure_ftp()
+        elif action == 'loc_map':
+            if hasattr(supplier, 'configure_location_mapping'):
+                supplier.configure_location_mapping()
         elif action == 'inv':
             supplier.fetch_inventory()
         elif action == 'inv_full':
@@ -174,6 +181,9 @@ def show_supplier_menu(key):
                 schedule_catalog(supplier, SCHEDULES[opt][1])
         elif action == 'manage_cat':
             show_catalog_menu(supplier)
+        elif action == 'upload_multi':
+            if hasattr(supplier, 'upload_multi_location_inventory'):
+                supplier.upload_multi_location_inventory()
         elif action == 'test':
             supplier.test_connection()
         else:

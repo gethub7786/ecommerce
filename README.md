@@ -7,7 +7,7 @@ This repository contains utilities for managing inventory data and simple suppli
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails. The `SOAPAction` header is sent as a quoted URI (e.g. `"http://eKeystone.com/GetInventoryUpdates"`) so the endpoint recognizes the action.
-* **CWR** - requires a feed **ID** entered via *Set Credential*. The tool builds the feed URLs using that ID. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. Use the **Force Full Inventory** option to reset the timestamp to 1970 and immediately pull all items.
+* **CWR** - requires a feed **ID** entered via *Set Credential*. The tool builds the feed URLs using that ID. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. Use the **Force Full Inventory** option to reset the timestamp to 1970 and immediately pull all items. The **Upload Multi-Location Inventory** action converts `cwr_inventory_stock.txt` into an Amazon‑ready file using a configurable location mapping.
 * **Seawide** - the **primary** inventory method uses the same Keystone SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) at `http://order.ekeystone.com/wselectronicorder/electronicorder.asmx` and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. In each supplier menu
@@ -60,6 +60,9 @@ From the menu select a supplier, add credentials (API keys, FTP details, etc.) a
 For each supplier you may test the connection and schedule catalog downloads at intervals of **5 minutes**, **15 minutes**, **30 minutes**, **45 minutes**, **1 hour**, **1 day**, **2 days** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
 
 The CWR integration runs a full sync every 48 hours using `time=0` and inventory-only updates every 5, 15, 30, 45 or 60 minutes via `ohtime`.
+The **Upload Multi-Location Inventory** option converts `cwr_inventory_stock.txt`
+to `cwr_amazon_multilocation_inventory.csv` for Amazon Seller Central. Configure
+the location mapping first under **Configure Location Mapping**.
 ### Usage
 
 ```bash

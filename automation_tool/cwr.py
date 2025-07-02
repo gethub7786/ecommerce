@@ -5,6 +5,7 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 from .base import Supplier
+from .cwr_conversion import convert_cwr_to_amazon
 from . import catalog
 from inventory_processor import (
     download_inventory,
@@ -172,3 +173,31 @@ class CwrSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch CWR catalog: %s', exc)
             print('Catalog download failed:', exc)
+
+    def configure_location_mapping(self) -> None:
+        """Prompt for mapping of inventory columns to Amazon supply IDs."""
+        mapping = self.get_credential('location_map', {})
+        if mapping:
+            print('Current mapping:')
+            for col, sid in mapping.items():
+                print(f'{col} -> {sid}')
+        while True:
+            col = input('Column name (blank to finish): ').strip()
+            if not col:
+                break
+            sid = input('Supply Source ID: ').strip()
+            mapping[col] = sid
+        self.set_credential('location_map', mapping)
+        print('Location mapping saved.')
+
+    def upload_multi_location_inventory(self) -> None:
+        """Convert stock file to Amazon multi-location format."""
+        input_path = Path(self.get_credential('stock_output', 'cwr_inventory_stock.txt'))
+        output_path = Path(self.get_credential('ml_output', 'cwr_amazon_multilocation_inventory.csv'))
+        mapping = self.get_credential('location_map', {})
+        try:
+            count = convert_cwr_to_amazon(input_path, output_path, mapping)
+            print(f'Converted {count} SKUs to {output_path}')
+        except Exception as exc:
+            logging.exception('CWR multi-location conversion failed: %s', exc)
+            print('Conversion failed:', exc)
