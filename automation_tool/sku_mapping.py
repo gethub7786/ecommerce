@@ -19,14 +19,17 @@ def load_mapping(path: str | Path) -> dict:
 
 
 def apply_mapping(rows: list[dict], mapping: dict) -> list:
-    """Return new rows with SKU replaced by mapping when available."""
+    """Return new rows with Amazon SKU column if mapping is provided."""
     if not mapping:
         return rows
     new_rows = []
     for r in rows:
         r = r.copy()
-        sku = r.get('SKU')
-        if sku in mapping:
-            r['SKU'] = mapping[sku]
+        sku = r.pop('SKU', None)
+        if sku is None:
+            new_rows.append(r)
+            continue
+        amz = mapping.get(sku, sku)
+        r['AMAZON SKU'] = amz
         new_rows.append(r)
     return new_rows

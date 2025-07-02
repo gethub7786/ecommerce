@@ -17,5 +17,5 @@ def test_load_and_apply(tmp_path: Path):
         {"SKU": "C3", "QUANTITY": 1},
     ]
     mapped = apply_mapping(rows, mapping)
-    assert mapped[0]["SKU"] == "ASKU1"
-    assert mapped[1]["SKU"] == "C3"
+    assert mapped[0]["AMAZON SKU"] == "ASKU1"
+    assert mapped[1]["AMAZON SKU"] == "C3"

@@ -77,12 +77,16 @@ def merge_mapping(rows: list[dict], mapping_path: Path) -> list[dict]:
 
 
 def save_inventory(rows: list, output: Path):
-    fieldnames = ['SKU', 'QUANTITY', 'NEWJERSEY STOCK', 'FLORIDA STOCK', 'UPC/EAN', 'Manufacturer']
+    if not rows:
+        return
+    header_sku = 'AMAZON SKU' if 'AMAZON SKU' in rows[0] else 'SKU'
+    fieldnames = [header_sku, 'QUANTITY', 'NEWJERSEY STOCK', 'FLORIDA STOCK', 'UPC/EAN', 'Manufacturer']
     with open(output, 'w', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter='\t')
         writer.writeheader()
         for r in rows:
-            writer.writerow({k: r.get(k, '') for k in fieldnames})
+            row = {k: r.get(k, '') for k in fieldnames}
+            writer.writerow(row)
 
 
 def main(base_url: str, since: int, mapping: Path, output: Path, *, inventory_only: bool = False):
