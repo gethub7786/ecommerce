@@ -103,7 +103,8 @@ def show_supplier_menu(key):
         if hasattr(supplier, 'fetch_inventory_secondary'):
             print(f"{idx}. Fetch Inventory Update via FTP (Secondary)"); opts[str(idx)] = 'inv_sec'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):
-            print(f"{idx}. Fetch Full Inventory"); opts[str(idx)] = 'inv_full'; idx += 1
+            label = 'Run Full Catalog from HTTP' if isinstance(supplier, CwrSupplier) else 'Fetch Full Inventory'
+            print(f"{idx}. {label}"); opts[str(idx)] = 'inv_full'; idx += 1
         if hasattr(supplier, 'force_full_sync'):
             print(f"{idx}. Force Full Inventory"); opts[str(idx)] = 'force_full'; idx += 1
         if isinstance(supplier, CwrSupplier):
@@ -115,7 +116,8 @@ def show_supplier_menu(key):
         if hasattr(supplier, 'fetch_inventory_full'):
             print(f"{idx}. Schedule Full Inventory"); opts[str(idx)] = 'sch_inv_full'; idx += 1
         if hasattr(supplier, 'fetch_catalog'):
-            print(f"{idx}. Fetch Catalog Now"); opts[str(idx)] = 'cat'; idx += 1
+            label = 'Run catalog from ftp' if isinstance(supplier, CwrSupplier) else 'Fetch Catalog Now'
+            print(f"{idx}. {label}"); opts[str(idx)] = 'cat'; idx += 1
             print(f"{idx}. Schedule Catalog"); opts[str(idx)] = 'sch_cat'; idx += 1
             print(f"{idx}. Manage Catalog"); opts[str(idx)] = 'manage_cat'; idx += 1
         if hasattr(supplier, 'upload_multi_location_inventory'):
