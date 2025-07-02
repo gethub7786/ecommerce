@@ -92,6 +92,8 @@ def show_supplier_menu(key):
             print(f"{idx}. Set FTP Credentials"); opts[str(idx)] = 'ftpcred'; idx += 1
         if hasattr(supplier, 'configure_location_mapping'):
             print(f"{idx}. Configure Location Mapping"); opts[str(idx)] = 'loc_map'; idx += 1
+        if hasattr(supplier, 'configure_sku_mapping'):
+            print(f"{idx}. Configure SKU Mapping"); opts[str(idx)] = 'sku_map'; idx += 1
         print(f"{idx}. Fetch Inventory Update"); opts[str(idx)] = 'inv'; idx += 1
         if hasattr(supplier, 'fetch_inventory_stock'):
             print(f"{idx}. Fetch Inventory Stock Only"); opts[str(idx)] = 'inv_stock'; idx += 1
@@ -134,6 +136,9 @@ def show_supplier_menu(key):
         elif action == 'loc_map':
             if hasattr(supplier, 'configure_location_mapping'):
                 supplier.configure_location_mapping()
+        elif action == 'sku_map':
+            if hasattr(supplier, 'configure_sku_mapping'):
+                supplier.configure_sku_mapping()
         elif action == 'inv':
             supplier.fetch_inventory()
         elif action == 'inv_full':

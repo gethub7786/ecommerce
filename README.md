@@ -7,7 +7,7 @@ This repository contains utilities for managing inventory data and simple suppli
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials:
 
 * **Keystone** - uses the SOAP web service as the **primary** inventory tracking method via `GetInventoryUpdates` and automatically falls back to FTP when the SOAP call fails. The `SOAPAction` header is sent as a quoted URI (e.g. `"http://eKeystone.com/GetInventoryUpdates"`) so the endpoint recognizes the action.
-* **CWR** - requires a feed **ID** entered via *Set Credential*. The tool builds the feed URLs using that ID. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. Use the **Force Full Inventory** option to reset the timestamp to 1970 and immediately pull all items. The **Upload Multi-Location Inventory** action converts `cwr_inventory_stock.txt` into an Amazon‑ready file using a configurable location mapping.
+* **CWR** - requires a feed **ID** entered via *Set Credential*. The tool builds the feed URLs using that ID. A full sync with `time=0` runs every 48 hours and inventory-only updates via `ohtime` every 5–60 minutes. Both feeds include the location quantities `qtynj` and `qtyfl`. Use the **Force Full Inventory** option to reset the timestamp to 1970 and immediately pull all items. The **Upload Multi-Location Inventory** action converts `cwr_inventory_stock.txt` into an Amazon‑ready file using a configurable location mapping. A separate **SKU Mapping** file (columns `SKU` and `AMAZON SKU`) can be configured so inventory downloads replace supplier SKUs with your Amazon SKUs.
 * **Seawide** - the **primary** inventory method uses the same Keystone SOAP API (`GetInventoryFull` and `GetInventoryUpdates`) at `http://order.ekeystone.com/wselectronicorder/electronicorder.asmx` and falls back to FTP if the SOAP request fails.
 
 Keystone and Seawide support optional FTP credentials. In each supplier menu
@@ -73,6 +73,6 @@ python inventory_processor.py \
   --output final_inventory.txt
 ```
 
-`--since` should be the UNIX timestamp representing the last update time. Add `--inventory-only` to produce an ohtime feed. `--mapping` must be a CSV file with columns `sku` and `modified_sku`.
+`--since` should be the UNIX timestamp representing the last update time. Add `--inventory-only` to produce an ohtime feed. `--mapping` must be a CSV file with columns `SKU` and `AMAZON SKU`.
 
 Both scripts rely only on the Python standard library and run in restricted environments.

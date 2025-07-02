@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from .base import Supplier
 from .cwr_conversion import convert_cwr_to_amazon
+from .sku_mapping import load_mapping, apply_mapping
 from . import catalog
 from inventory_processor import (
     download_inventory,
@@ -43,6 +44,13 @@ class CwrSupplier(Supplier):
         feed_id = input('Feed ID: ')
         self.set_credential('feed_id', feed_id)
         print('Feed ID saved.')
+
+    def configure_sku_mapping(self) -> None:
+        """Prompt for a SKU mapping CSV file."""
+        path = input('SKU mapping file path: ').strip()
+        if path:
+            self.set_credential('sku_map_file', path)
+            print('SKU mapping saved.')
 
     def _full_url(self) -> str:
         feed_id = self.get_credential('feed_id')
@@ -93,6 +101,10 @@ class CwrSupplier(Supplier):
                 row['UPC/EAN'] = row.pop('upc', row.get('UPC/EAN', ''))
                 row['Manufacturer'] = row.pop('mfgn', row.get('Manufacturer', ''))
                 normalized.append(row)
+            map_file = self.get_credential('sku_map_file')
+            if map_file:
+                mapping = load_mapping(map_file)
+                normalized = apply_mapping(normalized, mapping)
             save_inventory(normalized, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
             # Reset ohtime so the next stock update fetches everything
@@ -129,6 +141,10 @@ class CwrSupplier(Supplier):
                 row['UPC/EAN'] = row.pop('upc', row.get('UPC/EAN', ''))
                 row['Manufacturer'] = row.pop('mfgn', row.get('Manufacturer', ''))
                 normalized.append(row)
+            map_file = self.get_credential('sku_map_file')
+            if map_file:
+                mapping = load_mapping(map_file)
+                normalized = apply_mapping(normalized, mapping)
             save_inventory(normalized, Path(output))
             logging.info('Saved CWR stock inventory to %s', output)
             self._set_last_ohtime(int(datetime.now().timestamp()))
@@ -163,6 +179,10 @@ class CwrSupplier(Supplier):
         os.makedirs(out_dir, exist_ok=True)
         try:
             rows = download_inventory(url)
+            map_file = self.get_credential('sku_map_file')
+            if map_file:
+                mapping = load_mapping(map_file)
+                rows = apply_mapping(rows, mapping)
             catalog.save_rows(self.name, rows)
             with open(output, 'w', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=rows[0].keys())
