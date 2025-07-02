@@ -88,7 +88,8 @@ class CwrSupplier(Supplier):
         saved = self.get_credential('last_ohtime')
         if saved is not None:
             return int(saved)
-        return int((datetime.now() - timedelta(hours=DEFAULT_LOOKBACK_HOURS)).timestamp())
+        # On first run return the Unix epoch so we fetch the entire feed
+        return 0
 
     def _set_last_ohtime(self, ts: int) -> None:
         self.set_credential('last_ohtime', str(ts))
