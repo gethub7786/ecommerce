@@ -87,7 +87,8 @@ def show_supplier_menu(key):
         print(f"\nSupplier: {supplier.name}")
         opts = {}
         idx = 1
-        print(f"{idx}. Set Credential"); opts[str(idx)] = 'cred'; idx += 1
+        label = 'Set HTTPS Credential' if isinstance(supplier, CwrSupplier) else 'Set Credential'
+        print(f"{idx}. {label}"); opts[str(idx)] = 'cred'; idx += 1
         if hasattr(supplier, 'configure_ftp'):
             print(f"{idx}. Set FTP Credentials"); opts[str(idx)] = 'ftpcred'; idx += 1
         if hasattr(supplier, 'configure_location_mapping'):

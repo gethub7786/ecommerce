@@ -30,6 +30,8 @@ STOCK_UPDATE_URL_TMPL = (
     "&fields=sku,qty,qtynj,qtyfl,upc,mfgn"
     "&ohtime={ts}"
 )
+FTP_HOST = "edi.cwrdistribution.com"
+
 
 
 DEFAULT_LOOKBACK_HOURS = 10
@@ -55,6 +57,18 @@ class CwrSupplier(Supplier):
                 return
             self.set_credential('sku_map_file', str(p))
             print('SKU mapping saved.')
+
+    def configure_ftp(self) -> None:
+        """Prompt for FTP credentials used for catalog downloads."""
+        user = input('FTP User: ')
+        password = input('FTP Password: ')
+        port = input('FTP Port (default 21): ') or '21'
+        self.set_credential('ftp_user', user)
+        self.set_credential('ftp_password', password)
+        self.set_credential('ftp_port', port)
+        self.set_credential('ftp_remote_dir', '/out')
+        self.set_credential('ftp_remote_file', 'catalog.csv')
+        print('FTP credentials saved.')
 
     def _full_url(self) -> str:
         feed_id = self.get_credential('feed_id')
@@ -162,6 +176,12 @@ class CwrSupplier(Supplier):
             logging.exception('Failed to fetch CWR stock inventory: %s', exc)
 
     def test_connection(self) -> None:
+        ftp = self._ftp_connect()
+        if ftp:
+            ftp.quit()
+            print('FTP connection successful')
+            logging.info('CWR FTP connection successful')
+            return
         try:
             url = self._full_url()
         except ValueError:
@@ -179,33 +199,52 @@ class CwrSupplier(Supplier):
             print('Connection failed:', exc)
 
     def fetch_catalog(self) -> None:
-        try:
-            url = self._full_url()
-        except ValueError:
+        ftp = self._ftp_connect()
+        if not ftp:
             return
+        remote_dir = self.get_credential('ftp_remote_dir', '/out')
+        remote_file = self.get_credential('ftp_remote_file', 'catalog.csv')
+        remote_path = f"{remote_dir.rstrip('/')}/{remote_file}" if remote_dir else remote_file
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')
         output = os.path.join(out_dir, name)
         os.makedirs(out_dir, exist_ok=True)
         try:
-            rows = download_inventory(url)
-            map_file = self.get_credential('sku_map_file')
-            if map_file:
-                p = Path(map_file)
-                if not p.is_absolute():
-                    p = Path(os.path.dirname(self.config_path)) / p
-                mapping = load_mapping(p)
-                rows = apply_mapping(rows, mapping)
+            try:
+                total = ftp.size(remote_path)
+            except Exception:
+                total = None
+            downloaded = 0
+            with open(output, 'wb') as f:
+                def write_chunk(data):
+                    nonlocal downloaded
+                    f.write(data)
+                    downloaded += len(data)
+                    if total:
+                        percent = int(downloaded * 100 / total)
+                        print(f"\rDownloading: {percent}%", end='', flush=True)
+                    else:
+                        kb = downloaded // 1024
+                        print(f"\rDownloaded {kb} KB", end='', flush=True)
+
+                ftp.retrbinary(f'RETR {remote_path}', write_chunk)
+            if total:
+                print('\rDownload complete      ')
+            else:
+                print(f"\rDownloaded {downloaded // 1024} KB total      ")
+            with open(output, newline='') as f:
+                rows = list(csv.DictReader(f))
             catalog.save_rows(self.name, rows)
-            with open(output, 'w', newline='') as f:
-                writer = csv.DictWriter(f, fieldnames=rows[0].keys())
-                writer.writeheader()
-                writer.writerows(rows)
             logging.info('Saved CWR catalog to %s', output)
             print('Catalog saved to', catalog.catalog_path(self.name))
         except Exception as exc:
             logging.exception('Failed to fetch CWR catalog: %s', exc)
             print('Catalog download failed:', exc)
+        finally:
+            try:
+                ftp.quit()
+            except Exception:
+                pass
 
     def configure_location_mapping(self) -> None:
         """Prompt for mapping of inventory columns to Amazon supply IDs."""
@@ -234,3 +273,23 @@ class CwrSupplier(Supplier):
         except Exception as exc:
             logging.exception('CWR multi-location conversion failed: %s', exc)
             print('Conversion failed:', exc)
+
+    def _ftp_connect(self):
+        """Connect to the CWR FTP server for catalog downloads."""
+        user = self.get_credential('ftp_user')
+        password = self.get_credential('ftp_password')
+        port = int(self.get_credential('ftp_port', '21'))
+        if not user or not password:
+            print('Missing FTP credentials')
+            return None
+        import ftplib
+        try:
+            ftp = ftplib.FTP()
+            ftp.connect(FTP_HOST, port, timeout=30)
+            ftp.login(user, password)
+            ftp.set_pasv(True)
+            return ftp
+        except Exception as exc:
+            logging.exception('CWR FTP connection failed: %s', exc)
+            print('CWR FTP connection failed:', exc)
+            return None
