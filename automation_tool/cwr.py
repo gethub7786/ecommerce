@@ -46,10 +46,14 @@ class CwrSupplier(Supplier):
         print('Feed ID saved.')
 
     def configure_sku_mapping(self) -> None:
-        """Prompt for a SKU mapping CSV file."""
+        """Prompt for a SKU mapping CSV file and store its absolute path."""
         path = input('SKU mapping file path: ').strip()
         if path:
-            self.set_credential('sku_map_file', path)
+            p = Path(path).expanduser().resolve()
+            if not p.exists():
+                print('File not found:', p)
+                return
+            self.set_credential('sku_map_file', str(p))
             print('SKU mapping saved.')
 
     def _full_url(self) -> str:
