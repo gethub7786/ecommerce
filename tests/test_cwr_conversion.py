@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -19,22 +20,23 @@ def create_input(tmp_path: Path) -> Path:
 
 def test_conversion_success(tmp_path):
     input_file = create_input(tmp_path)
-    output = tmp_path / "out.csv"
+    output = tmp_path / "out.json"
     mapping = {
         'NEWJERSEY STOCK': 'NJID',
         'FLORIDA STOCK': 'FLID',
     }
     count = convert_cwr_to_amazon(input_file, output, mapping)
     assert count == 2
-    lines = output.read_text().strip().splitlines()
-    assert lines[0] == 'sku,fulfillment-center-id,quantity'
-    assert lines[1] == 'A1,NJID,3'
-    assert lines[2] == 'A1,FLID,2'
-    assert lines[3] == 'A1,DEFAULT,0'
+    data = json.loads(output.read_text())
+    assert data[0]['sku'] == 'A1'
+    avail = data[0]['patches'][0]['value']
+    assert avail[0] == {'fulfillmentChannelCode': 'NJID', 'quantity': 3}
+    assert avail[1] == {'fulfillmentChannelCode': 'FLID', 'quantity': 2}
+    assert avail[2] == {'fulfillmentChannelCode': 'DEFAULT', 'quantity': 0}
 
 
 def test_missing_file(tmp_path):
-    output = tmp_path / 'out.csv'
+    output = tmp_path / 'out.json'
     try:
         convert_cwr_to_amazon(tmp_path/'missing.txt', output, {})
     except FileNotFoundError:
@@ -46,9 +48,9 @@ def test_missing_file(tmp_path):
 def test_skip_missing_sku(tmp_path):
     p = tmp_path / "cwr_inventory_stock.txt"
     p.write_text("SKU\tQUANTITY\tNEWJERSEY STOCK\n\t\t1\n")
-    output = tmp_path / 'out.csv'
+    output = tmp_path / 'out.json'
     mapping = {'NEWJERSEY STOCK': 'ID'}
     count = convert_cwr_to_amazon(p, output, mapping)
     assert count == 0
-    data = output.read_text().strip().splitlines()
-    assert data == ['sku,fulfillment-center-id,quantity']
+    data = json.loads(output.read_text())
+    assert data == []

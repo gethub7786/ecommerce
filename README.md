@@ -61,7 +61,7 @@ For each supplier you may test the connection and schedule catalog downloads at 
 
 The CWR integration runs a full sync every 48 hours using `time=0` and inventory-only updates every 5, 15, 30, 45 or 60 minutes via `ohtime`.
 The **Upload Multi-Location Inventory** option converts `cwr_inventory_stock.txt`
-to `cwr_amazon_multilocation_inventory.csv` for Amazon Seller Central. Configure
+to `cwr_amazon_multilocation_inventory.json` for Amazon Seller Central. Configure
 the location mapping first under **Configure Location Mapping**.
 ### Usage
 

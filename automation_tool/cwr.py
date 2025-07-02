@@ -193,7 +193,7 @@ class CwrSupplier(Supplier):
     def upload_multi_location_inventory(self) -> None:
         """Convert stock file to Amazon multi-location format."""
         input_path = Path(self.get_credential('stock_output', 'cwr_inventory_stock.txt'))
-        output_path = Path(self.get_credential('ml_output', 'cwr_amazon_multilocation_inventory.csv'))
+        output_path = Path(self.get_credential('ml_output', 'cwr_amazon_multilocation_inventory.json'))
         mapping = self.get_credential('location_map', {})
         try:
             count = convert_cwr_to_amazon(input_path, output_path, mapping)
