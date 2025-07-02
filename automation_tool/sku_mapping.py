@@ -4,9 +4,18 @@ from pathlib import Path
 
 
 def load_mapping(path: str | Path) -> dict:
-    """Load SKU mapping from CSV file with columns 'SKU' and 'AMAZON SKU'."""
-    if not path or not os.path.exists(path):
+    """Load SKU mapping from CSV file with columns 'SKU' and 'AMAZON SKU'.
+
+    The path may be relative or absolute and `~` will be expanded. If the file
+    cannot be found, an empty mapping is returned."""
+    if not path:
         return {}
+    p = Path(path).expanduser()
+    if not p.is_absolute():
+        p = (Path.cwd() / p).resolve()
+    if not p.exists():
+        return {}
+    path = str(p)
     mapping = {}
     with open(path, newline='') as f:
         reader = csv.DictReader(f)

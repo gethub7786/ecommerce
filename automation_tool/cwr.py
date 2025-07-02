@@ -107,7 +107,10 @@ class CwrSupplier(Supplier):
                 normalized.append(row)
             map_file = self.get_credential('sku_map_file')
             if map_file:
-                mapping = load_mapping(map_file)
+                p = Path(map_file)
+                if not p.is_absolute():
+                    p = Path(os.path.dirname(self.config_path)) / p
+                mapping = load_mapping(p)
                 normalized = apply_mapping(normalized, mapping)
             save_inventory(normalized, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
@@ -147,7 +150,10 @@ class CwrSupplier(Supplier):
                 normalized.append(row)
             map_file = self.get_credential('sku_map_file')
             if map_file:
-                mapping = load_mapping(map_file)
+                p = Path(map_file)
+                if not p.is_absolute():
+                    p = Path(os.path.dirname(self.config_path)) / p
+                mapping = load_mapping(p)
                 normalized = apply_mapping(normalized, mapping)
             save_inventory(normalized, Path(output))
             logging.info('Saved CWR stock inventory to %s', output)
@@ -185,7 +191,10 @@ class CwrSupplier(Supplier):
             rows = download_inventory(url)
             map_file = self.get_credential('sku_map_file')
             if map_file:
-                mapping = load_mapping(map_file)
+                p = Path(map_file)
+                if not p.is_absolute():
+                    p = Path(os.path.dirname(self.config_path)) / p
+                mapping = load_mapping(p)
                 rows = apply_mapping(rows, mapping)
             catalog.save_rows(self.name, rows)
             with open(output, 'w', newline='') as f:
