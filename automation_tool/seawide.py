@@ -5,7 +5,9 @@ import os
 import csv
 import urllib.request
 import xml.etree.ElementTree as ET
+from pathlib import Path
 from .base import Supplier, SFTPWrapper, ImplicitFTP_TLS
+from .multi_location import convert_to_amazon
 from . import catalog
 from .keystone import _parse_dataset, _soap_error_message
 
@@ -39,6 +41,21 @@ class SeawideSupplier(Supplier):
         self.set_credential('ftp_remote_dir', remote_dir)
         self.set_credential('remote_update_file', remote_file)
         print('FTP credentials saved.')
+
+    def configure_location_mapping(self) -> None:
+        mapping = self.get_credential('location_map', {})
+        if mapping:
+            print('Current mapping:')
+            for col, sid in mapping.items():
+                print(f'{col} -> {sid}')
+        while True:
+            col = input('Column name (blank to finish): ').strip()
+            if not col:
+                break
+            sid = input('Supply Source ID: ').strip()
+            mapping[col] = sid
+        self.set_credential('location_map', mapping)
+        print('Location mapping saved.')
 
     # Primary method: SOAP API inventory tracking
     def fetch_inventory_primary(self) -> bool:
@@ -122,6 +139,18 @@ class SeawideSupplier(Supplier):
                 ftp.quit()
             except Exception:
                 pass
+
+    def upload_multi_location_inventory(self) -> None:
+        """Convert update file to Amazon multi-location JSON."""
+        input_path = Path(self.get_credential('output', 'seawide_inventory_update.csv'))
+        output_path = Path(self.get_credential('ml_output', 'seawide_amazon_multilocation_inventory.json'))
+        mapping = self.get_credential('location_map', {})
+        try:
+            count = convert_to_amazon(input_path, output_path, mapping, sku_field='VCPN', delimiter=',')
+            print(f'Converted {count} SKUs to {output_path}')
+        except Exception as exc:
+            logging.exception('Seawide multi-location conversion failed: %s', exc)
+            print('Conversion failed:', exc)
 
     def fetch_inventory_full(self) -> None:
         """Download the full inventory file via SOAP or FTP."""

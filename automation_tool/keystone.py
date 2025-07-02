@@ -4,7 +4,9 @@ import xml.etree.ElementTree as ET
 import csv
 import os
 import ssl
+from pathlib import Path
 from .base import Supplier, SFTPWrapper, ImplicitFTP_TLS
+from .multi_location import convert_to_amazon
 from . import catalog
 
 # Fixed FTP connection details for Keystone
@@ -73,6 +75,22 @@ class KeystoneSupplier(Supplier):
         self.set_credential('ftp_remote_dir', remote_dir)
         self.set_credential('remote_update_file', remote_file)
         print('FTP credentials saved.')
+
+    def configure_location_mapping(self) -> None:
+        """Prompt for mapping of inventory columns to Amazon supply IDs."""
+        mapping = self.get_credential('location_map', {})
+        if mapping:
+            print('Current mapping:')
+            for col, sid in mapping.items():
+                print(f'{col} -> {sid}')
+        while True:
+            col = input('Column name (blank to finish): ').strip()
+            if not col:
+                break
+            sid = input('Supply Source ID: ').strip()
+            mapping[col] = sid
+        self.set_credential('location_map', mapping)
+        print('Location mapping saved.')
 
     # Primary method: SOAP API inventory tracking
     def fetch_inventory_primary(self) -> bool:
@@ -351,3 +369,15 @@ class KeystoneSupplier(Supplier):
         except Exception as exc:
             logging.exception('Failed to fetch Keystone catalog: %s', exc)
             print('Catalog download failed:', exc)
+
+    def upload_multi_location_inventory(self) -> None:
+        """Convert update file to Amazon multi-location JSON."""
+        input_path = Path(self.get_credential('output', 'keystone_inventory_update.csv'))
+        output_path = Path(self.get_credential('ml_output', 'keystone_amazon_multilocation_inventory.json'))
+        mapping = self.get_credential('location_map', {})
+        try:
+            count = convert_to_amazon(input_path, output_path, mapping, sku_field='VCPN', delimiter=',')
+            print(f'Converted {count} SKUs to {output_path}')
+        except Exception as exc:
+            logging.exception('Keystone multi-location conversion failed: %s', exc)
+            print('Conversion failed:', exc)
