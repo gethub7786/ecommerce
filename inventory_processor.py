@@ -6,6 +6,7 @@ import urllib.request
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
+from automation_tool.sku_mapping import load_mapping, apply_mapping
 
 
 def build_url(base_url: str, since: int, *, inventory_only: bool = False) -> str:
@@ -69,22 +70,10 @@ def download_inventory(url: str, *, inventory_only: bool = False, retries: int =
             raise
 
 
-def merge_mapping(rows: list, mapping_path: Path) -> list:
-    with open(mapping_path, newline='') as f:
-        mapping = {r['sku']: r['modified_sku'] for r in csv.DictReader(f)}
-    merged = []
-    for r in rows:
-        sku = r.get('SKU')
-        if sku in mapping:
-            merged.append({
-                'SKU': mapping[sku],
-                'QUANTITY': r.get('QUANTITY', r.get('Quantity', '')),
-                'NEWJERSEY STOCK': r.get('NEWJERSEY STOCK', r.get('qtynj', 0)),
-                'FLORIDA STOCK': r.get('FLORIDA STOCK', r.get('qtyfl', 0)),
-                'UPC/EAN': r.get('UPC/EAN', ''),
-                'Manufacturer': r.get('Manufacturer', ''),
-            })
-    return merged
+def merge_mapping(rows: list[dict], mapping_path: Path) -> list[dict]:
+    """Apply a SKU mapping file to the downloaded rows."""
+    mapping = load_mapping(mapping_path)
+    return apply_mapping(rows, mapping)
 
 
 def save_inventory(rows: list, output: Path):
