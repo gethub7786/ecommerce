@@ -4,7 +4,7 @@ import os
 import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
-from .base import Supplier
+from .base import Supplier, SFTPWrapper
 from .cwr_conversion import convert_cwr_to_amazon
 from .sku_mapping import load_mapping, apply_mapping
 from . import catalog
@@ -59,10 +59,10 @@ class CwrSupplier(Supplier):
             print('SKU mapping saved.')
 
     def configure_ftp(self) -> None:
-        """Prompt for FTP credentials used for catalog downloads."""
+        """Prompt for SFTP credentials used for catalog downloads."""
         user = input('FTP User: ')
         password = input('FTP Password: ')
-        port = input('FTP Port (default 21): ') or '21'
+        port = input('FTP Port (default 22): ') or '22'
         self.set_credential('ftp_user', user)
         self.set_credential('ftp_password', password)
         self.set_credential('ftp_port', port)
@@ -279,18 +279,22 @@ class CwrSupplier(Supplier):
         """Connect to the CWR FTP server for catalog downloads."""
         user = self.get_credential('ftp_user')
         password = self.get_credential('ftp_password')
-        port = int(self.get_credential('ftp_port', '21'))
+        port = int(self.get_credential('ftp_port', '22'))
         if not user or not password:
             print('Missing FTP credentials')
             return None
-        import ftplib
         try:
-            ftp = ftplib.FTP()
-            ftp.connect(FTP_HOST, port, timeout=30)
-            ftp.login(user, password)
-            ftp.set_pasv(True)
-            return ftp
+            import paramiko
         except Exception as exc:
-            logging.exception('CWR FTP connection failed: %s', exc)
-            print('CWR FTP connection failed:', exc)
+            logging.exception('paramiko missing for SFTP: %s', exc)
+            print('paramiko library required for SFTP')
+            return None
+        try:
+            transport = paramiko.Transport((FTP_HOST, port))
+            transport.connect(username=user, password=password)
+            sftp = paramiko.SFTPClient.from_transport(transport)
+            return SFTPWrapper(sftp)
+        except Exception as exc:
+            logging.exception('CWR SFTP connection failed: %s', exc)
+            print('CWR SFTP connection failed:', exc)
             return None
