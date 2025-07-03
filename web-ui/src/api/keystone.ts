@@ -12,9 +12,15 @@ export function saveLocationMap(map: Record<string,string>) {
   return axios.post('/keystone/location-map', map)
 }
 
-export function schedulePartial() { return axios.post('/keystone/schedule/partial') }
-export function scheduleFull() { return axios.post('/keystone/schedule/full') }
-export function scheduleCatalog() { return axios.post('/keystone/schedule/catalog') }
+export function schedulePartial(minutes: number) {
+  return axios.post('/keystone/schedule/partial', { interval: minutes })
+}
+export function scheduleFull(minutes: number) {
+  return axios.post('/keystone/schedule/full', { interval: minutes })
+}
+export function scheduleCatalog(minutes: number) {
+  return axios.post('/keystone/schedule/catalog', { interval: minutes })
+}
 
 export function listCatalog() { return axios.get('/keystone/catalog') }
 export function deleteSku(sku: string) { return axios.delete(`/keystone/catalog/${sku}`) }

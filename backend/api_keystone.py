@@ -44,12 +44,16 @@ def run_full():
 
 @app.post('/keystone/schedule/partial')
 def sched_partial():
-    # placeholder: scheduling not implemented
-    return {'status': 'scheduled'}
+    data = request.json or {}
+    interval = data.get('interval')
+    # scheduling not implemented; acknowledge value
+    return {'status': 'scheduled', 'interval': interval}
 
 @app.post('/keystone/schedule/full')
 def sched_full():
-    return {'status': 'scheduled'}
+    data = request.json or {}
+    interval = data.get('interval')
+    return {'status': 'scheduled', 'interval': interval}
 
 @app.get('/keystone/catalog/run')
 def run_catalog():
@@ -58,7 +62,9 @@ def run_catalog():
 
 @app.post('/keystone/schedule/catalog')
 def sched_catalog():
-    return {'status': 'scheduled'}
+    data = request.json or {}
+    interval = data.get('interval')
+    return {'status': 'scheduled', 'interval': interval}
 
 @app.get('/keystone/catalog')
 def list_catalog():

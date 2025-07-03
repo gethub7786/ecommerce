@@ -86,6 +86,8 @@ npm install
 npm run dev
 ```
 
+The Location Mapping form requests each inventory column and its Amazon supply source ID. Scheduling forms include a minutes field so jobs can be triggered at custom intervals.
+
 The backend API uses Flask. Launch it with:
 
 ```bash
