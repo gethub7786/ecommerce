@@ -66,7 +66,8 @@ class CwrSupplier(Supplier):
         self.set_credential('ftp_user', user)
         self.set_credential('ftp_password', password)
         self.set_credential('ftp_port', port)
-        self.set_credential('ftp_remote_dir', '/out')
+        # store relative path so the SFTP client works regardless of leading '/'
+        self.set_credential('ftp_remote_dir', 'out')
         self.set_credential('ftp_remote_file', 'catalog.csv')
         print('FTP credentials saved.')
 
@@ -203,9 +204,9 @@ class CwrSupplier(Supplier):
         ftp = self._ftp_connect()
         if not ftp:
             return
-        remote_dir = self.get_credential('ftp_remote_dir', '/out')
+        remote_dir = (self.get_credential('ftp_remote_dir', 'out') or '').strip('/')
         remote_file = self.get_credential('ftp_remote_file', 'catalog.csv')
-        remote_path = f"{remote_dir.rstrip('/')}/{remote_file}" if remote_dir else remote_file
+        remote_path = f"{remote_dir}/{remote_file}" if remote_dir else remote_file
         out_dir = self.get_credential('catalog_dir', '.')
         name = self.get_credential('catalog_name', 'cwr_catalog.csv')
         output = os.path.join(out_dir, name)
@@ -214,9 +215,9 @@ class CwrSupplier(Supplier):
             try:
                 total = ftp.size(remote_path)
             except Exception as exc:
-                if 'No such' in str(exc) and remote_path != '/out/catalog.csv':
-                    logging.warning('CWR catalog not found at %s, retrying /out/catalog.csv', remote_path)
-                    remote_path = '/out/catalog.csv'
+                if 'No such' in str(exc) and remote_path != 'out/catalog.csv':
+                    logging.warning('CWR catalog not found at %s, retrying out/catalog.csv', remote_path)
+                    remote_path = 'out/catalog.csv'
                     try:
                         total = ftp.size(remote_path)
                     except Exception:
@@ -239,9 +240,9 @@ class CwrSupplier(Supplier):
                 try:
                     ftp.retrbinary(f'RETR {remote_path}', write_chunk)
                 except Exception as exc:
-                    if 'No such' in str(exc) and remote_path != '/out/catalog.csv':
-                        logging.warning('Retrying catalog download at /out/catalog.csv')
-                        remote_path = '/out/catalog.csv'
+                    if 'No such' in str(exc) and remote_path != 'out/catalog.csv':
+                        logging.warning('Retrying catalog download at out/catalog.csv')
+                        remote_path = 'out/catalog.csv'
                         downloaded = 0
                         ftp.retrbinary(f'RETR {remote_path}', write_chunk)
                     else:
