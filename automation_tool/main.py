@@ -87,7 +87,7 @@ def show_supplier_menu(key):
         print(f"\nSupplier: {supplier.name}")
         opts = {}
         idx = 1
-        label = 'Set HTTPS Credential' if isinstance(supplier, CwrSupplier) else 'Set Credential'
+        label = 'Set HTTPS Credential' if isinstance(supplier, CwrSupplier) else 'Set API Credential'
         print(f"{idx}. {label}"); opts[str(idx)] = 'cred'; idx += 1
         if hasattr(supplier, 'configure_ftp'):
             print(f"{idx}. Set FTP Credentials"); opts[str(idx)] = 'ftpcred'; idx += 1
@@ -98,20 +98,20 @@ def show_supplier_menu(key):
         if isinstance(supplier, CwrSupplier):
             print(f"{idx}. Run Partial Inventory"); opts[str(idx)] = 'inv'; idx += 1
         else:
-            print(f"{idx}. Fetch Inventory Update"); opts[str(idx)] = 'inv'; idx += 1
+            print(f"{idx}. Run Partial Inventory"); opts[str(idx)] = 'inv'; idx += 1
             if hasattr(supplier, 'fetch_inventory_stock'):
                 print(f"{idx}. Fetch Inventory Stock Only"); opts[str(idx)] = 'inv_stock'; idx += 1
         if hasattr(supplier, 'fetch_inventory_secondary'):
-            print(f"{idx}. Fetch Inventory Update via FTP (Secondary)"); opts[str(idx)] = 'inv_sec'; idx += 1
+            print(f"{idx}. Run Full Inventory via FTP (Secondary)"); opts[str(idx)] = 'inv_sec'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):
-            label = 'Run Full Catalog from HTTP' if isinstance(supplier, CwrSupplier) else 'Fetch Full Inventory'
+            label = 'Run Full Catalog from HTTP' if isinstance(supplier, CwrSupplier) else 'Run Full Inventory'
             print(f"{idx}. {label}"); opts[str(idx)] = 'inv_full'; idx += 1
         if hasattr(supplier, 'force_full_sync'):
             print(f"{idx}. Force Full Inventory"); opts[str(idx)] = 'force_full'; idx += 1
         if isinstance(supplier, CwrSupplier):
             print(f"{idx}. Schedule Partial Inventory"); opts[str(idx)] = 'sch_inv'; idx += 1
         else:
-            print(f"{idx}. Schedule Inventory Update"); opts[str(idx)] = 'sch_inv'; idx += 1
+            print(f"{idx}. Schedule Partial Inventory"); opts[str(idx)] = 'sch_inv'; idx += 1
             if hasattr(supplier, 'fetch_inventory_stock'):
                 print(f"{idx}. Schedule Inventory Stock"); opts[str(idx)] = 'sch_inv_stock'; idx += 1
         if hasattr(supplier, 'fetch_inventory_full'):

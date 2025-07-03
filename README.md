@@ -21,12 +21,12 @@ and `Remote File`
 used when downloading inventory from FTP. If omitted, the folder defaults to
 `/` and the file to `Inventory.csv`. Passive mode is enabled automatically for
 all connections. Use **Test Connection** to verify the FTP access. For SOAP
-access provide `account_number` and `security_key` via **Set Credential`.
+access provide `account_number` and `security_key` via **Set API Credential**.
 Seawide works the same way but uses an `api_key` against the same Keystone SOAP
 endpoint.
 All credentials are stored locally until you change them.
 
-When selecting **Fetch Inventory Update via FTP** for Keystone or Seawide, you
+When selecting **Run Full Inventory via FTP (Secondary)** for Keystone or Seawide, you
 will be prompted for the remote file name if none is saved. The tool prints the
 percent complete while downloading (or the downloaded size if the server does
 not report file length).
