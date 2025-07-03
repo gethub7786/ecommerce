@@ -86,6 +86,7 @@ const App: React.FC = () => {
   const [automationTasks, setAutomationTasks] = useState<AutomationTask[]>([]);
   const [selectedSupplier, setSelectedSupplier] = useState<SupplierIntegration | null>(null);
   const [showIntegrationDetails, setShowIntegrationDetails] = useState(false);
+  const [showAddIntegrationModal, setShowAddIntegrationModal] = useState(false);
 
   useEffect(() => {
     const load = () => {
@@ -298,6 +299,38 @@ const App: React.FC = () => {
     );
   };
 
+  const renderAddIntegrationModal = () => {
+    if (!showAddIntegrationModal) return null;
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-10">
+        <div className="bg-white p-6 rounded-lg w-80">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Supplier</h3>
+          <div className="space-y-3">
+            {supplierIntegrations.map(s => (
+              <button
+                key={s.id}
+                onClick={() => {
+                  setShowAddIntegrationModal(false);
+                  handleSupplierClick(s);
+                }}
+                className="w-full flex items-center space-x-2 p-2 border rounded hover:bg-gray-50"
+              >
+                <span className="text-2xl">{getSupplierIcon(s.type)}</span>
+                <span>{s.name}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            className="mt-4 w-full px-3 py-2 bg-gray-200 rounded"
+            onClick={() => setShowAddIntegrationModal(false)}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -460,7 +493,10 @@ const App: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Supplier Integrations</h2>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            onClick={() => setShowAddIntegrationModal(true)}
+          >
             <Upload size={16} />
             <span>Add Integration</span>
           </button>
@@ -635,6 +671,7 @@ const App: React.FC = () => {
           <div className="p-6">
             {renderContent()}
           </div>
+          {renderAddIntegrationModal()}
         </div>
       </div>
     </div>
