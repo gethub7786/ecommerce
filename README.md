@@ -92,6 +92,7 @@ cd web-ui && npm install && npm run dev
 ```bash
 cd web-ui && npm run build
 cd ..
+# The FastAPI server serves the built frontend and exposes supplier APIs
 python api_server.py
 ```
 
