@@ -48,6 +48,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [skuCount, setSkuCount] = useState(0);
+  const [supplierIntegrations, setSupplierIntegrations] = useState<SupplierIntegration[]>([]);
 
   useEffect(() => {
     listCatalog()
@@ -69,35 +70,12 @@ const App: React.FC = () => {
     { id: 'monitoring', label: 'System Monitoring', icon: <Activity size={20} /> },
   ];
 
-  const supplierIntegrations: SupplierIntegration[] = [
-    {
-      id: '1',
-      name: 'Keystone Automotive',
-      type: 'keystone',
-      status: 'active',
-      lastSync: '2 hours ago',
-      itemCount: 15420,
-      locations: 8
-    },
-    {
-      id: '2', 
-      name: 'CWR Electronics',
-      type: 'cwr',
-      status: 'syncing',
-      lastSync: '15 minutes ago',
-      itemCount: 8750,
-      locations: 3
-    },
-    {
-      id: '3',
-      name: 'Seawide Distribution', 
-      type: 'seawide',
-      status: 'active',
-      lastSync: '30 minutes ago',
-      itemCount: 12300,
-      locations: 5
-    }
-  ];
+  useEffect(() => {
+    fetch('/suppliers/status')
+      .then(res => res.json())
+      .then(data => setSupplierIntegrations(data.suppliers || []))
+      .catch(() => setSupplierIntegrations([]));
+  }, []);
 
   const automationTasks: AutomationTask[] = [
     {

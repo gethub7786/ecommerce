@@ -130,6 +130,8 @@ class CwrSupplier(Supplier):
                 normalized = apply_mapping(normalized, mapping)
             save_inventory(normalized, Path(output))
             logging.info('Saved CWR full inventory to %s', output)
+            self.set_credential('last_sync', int(datetime.now().timestamp()))
+            self.set_credential('item_count', len(normalized))
             # Reset ohtime so the next stock update fetches everything
             self._set_last_ohtime(0)
         except Exception as exc:
@@ -173,6 +175,8 @@ class CwrSupplier(Supplier):
                 normalized = apply_mapping(normalized, mapping)
             save_inventory(normalized, Path(output))
             logging.info('Saved CWR stock inventory to %s', output)
+            self.set_credential('last_sync', int(datetime.now().timestamp()))
+            self.set_credential('item_count', len(normalized))
             self._set_last_ohtime(int(datetime.now().timestamp()))
         except Exception as exc:
             logging.exception('Failed to fetch CWR stock inventory: %s', exc)

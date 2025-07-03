@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 import csv
 import os
 import ssl
+import time
 from pathlib import Path
 from .base import Supplier, SFTPWrapper, ImplicitFTP_TLS
 from .multi_location import convert_to_amazon
@@ -132,6 +133,8 @@ class KeystoneSupplier(Supplier):
                     writer.writeheader()
                     writer.writerows(rows)
                 logging.info('Saved Keystone inventory update to %s', output)
+                self.set_credential('last_sync', int(time.time()))
+                self.set_credential('item_count', len(rows))
                 return True
             err = _soap_error_message(xml_data)
             if err:
@@ -206,6 +209,8 @@ class KeystoneSupplier(Supplier):
                     rows = list(csv.DictReader(f))
                 if rows:
                     catalog.save_rows(self.name, rows)
+                    self.set_credential('last_sync', int(time.time()))
+                    self.set_credential('item_count', len(rows))
                     logging.info('Updated %s catalog from FTP download', self.name)
             except Exception as exc:
                 logging.warning('Failed to parse downloaded inventory: %s', exc)
@@ -258,6 +263,8 @@ class KeystoneSupplier(Supplier):
                     writer.writeheader()
                     writer.writerows(rows)
                 logging.info('Saved Keystone full inventory to %s', output)
+                self.set_credential('last_sync', int(time.time()))
+                self.set_credential('item_count', len(rows))
             else:
                 err = _soap_error_message(xml_data)
                 if err:

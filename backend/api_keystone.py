@@ -1,9 +1,14 @@
 from flask import Flask, request
 from automation_tool.keystone import KeystoneSupplier
+from automation_tool.cwr import CwrSupplier
+from automation_tool.seawide import SeawideSupplier
 from automation_tool import catalog
+from datetime import datetime
 
 app = Flask(__name__)
 ks = KeystoneSupplier()
+cs = CwrSupplier()
+sw = SeawideSupplier()
 
 @app.post('/keystone/credentials')
 def set_credentials():
@@ -92,6 +97,13 @@ def upload_mli():
 def test_conn():
     ks.test_connection()
     return {'status': 'done'}
+
+@app.get('/suppliers/status')
+def suppliers_status():
+    data = []
+    for sup in (ks, cs, sw):
+        data.append(sup.status())
+    return {'suppliers': data}
 
 if __name__ == '__main__':
     app.run(debug=True)

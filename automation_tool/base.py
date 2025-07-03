@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+from datetime import datetime
 
 
 class SFTPWrapper:
@@ -106,3 +107,27 @@ class Supplier:
     def fetch_catalog(self) -> None:
         """Placeholder catalog fetch."""
         logging.info("Fetching catalog for %s", self.name)
+
+    def status(self) -> dict:
+        """Return a summary status for the supplier."""
+        ts = self.get_credential('last_sync')
+        if ts:
+            try:
+                ts = datetime.fromtimestamp(float(ts)).strftime('%Y-%m-%d %H:%M')
+            except Exception:
+                ts = str(ts)
+        else:
+            ts = 'never'
+        item_count = int(self.get_credential('item_count', 0))
+        locations = len(self.get_credential('location_map', {}))
+        active = bool(self.get_credential('account_number') or self.get_credential('api_key') or self.get_credential('ftp_user'))
+        status = 'active' if active else 'inactive'
+        return {
+            'id': self.name.lower(),
+            'name': self.name,
+            'type': self.name.lower(),
+            'status': status,
+            'lastSync': ts,
+            'itemCount': item_count,
+            'locations': locations,
+        }
