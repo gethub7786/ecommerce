@@ -3,7 +3,7 @@ import uuid
 import time
 import json
 import os
-from automation_tool.keystone import KeystoneSupplier
+from .keystone_service import KeystoneSupplier
 from automation_tool.cwr import CwrSupplier
 from automation_tool.seawide import SeawideSupplier
 from automation_tool import catalog
