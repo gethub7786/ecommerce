@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+axios.defaults.withCredentials = true
+
 export function saveCredentials(account: string, key: string) {
   return axios.post('/keystone/credentials', { account_number: account, security_key: key })
 }
