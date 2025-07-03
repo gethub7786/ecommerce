@@ -17,7 +17,7 @@ import {
   uploadMLI
 } from '../api/keystone'
 
-export default function KeystonePage() {
+export default function KeystonePage({ onBack }: { onBack?: () => void }) {
   const [action, setAction] = useState(0)
   return (
     <Box sx={{ display: 'flex' }}>
@@ -51,7 +51,9 @@ export default function KeystonePage() {
         {action===10 && <CatalogManager />}
         {action===11 && <button onClick={uploadMLI}>Run</button>}
         {action===12 && <button onClick={testConnection}>Test</button>}
-        {action===13 && <div>Select another supplier from the top tabs.</div>}
+        {action===13 && (
+          <button onClick={onBack} style={{marginTop:8}}>Back to suppliers</button>
+        )}
       </Box>
     </Box>
   )

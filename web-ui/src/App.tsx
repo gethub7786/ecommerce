@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import KeystonePage from './keystone/KeystonePage';
 import {
   Settings,
   Database,
@@ -28,7 +29,7 @@ import {
   PlayCircle,
   Plus,
   X,
-  Save
+  
 } from 'lucide-react';
 import { fetchSupplierStatus, fetchTasks } from './api/keystone';
 
@@ -211,12 +212,6 @@ const App: React.FC = () => {
     setShowAddIntegration(false);
   };
 
-  const handleSaveIntegration = () => {
-    console.log('Saving integration:', selectedPrebuiltIntegration);
-    setShowConfigureIntegration(false);
-    setSelectedPrebuiltIntegration(null);
-    setShowAddIntegration(false);
-  };
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -442,6 +437,17 @@ const App: React.FC = () => {
 
   const renderConfigureIntegration = () => {
     if (!selectedPrebuiltIntegration) return null;
+    if (selectedPrebuiltIntegration.id === 'keystone') {
+      return (
+        <div className="space-y-6">
+          <button onClick={handleBackToSuppliers} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+            <ArrowLeft size={18} />
+            <span>Back to suppliers</span>
+          </button>
+          <KeystonePage onBack={handleBackToSuppliers} />
+        </div>
+      );
+    }
     return (
       <div className="space-y-6">
         <button onClick={handleBackToSuppliers} className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
@@ -452,21 +458,8 @@ const App: React.FC = () => {
           <span className="text-4xl">{selectedPrebuiltIntegration.icon}</span>
           <h2 className="text-2xl font-bold text-gray-900">Configure: {selectedPrebuiltIntegration.name}</h2>
         </div>
-        <div className="bg-white border rounded-xl shadow-sm p-6 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
-            <input type="password" placeholder="Enter API key" className="w-full px-3 py-2 border rounded-lg" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">API Secret</label>
-            <input type="password" placeholder="Enter API secret" className="w-full px-3 py-2 border rounded-lg" />
-          </div>
-          <div className="flex items-center justify-end space-x-3">
-            <button onClick={handleSaveIntegration} className="px-5 py-2 bg-blue-600 text-white rounded-lg flex items-center space-x-2 hover:bg-blue-700">
-              <Save size={16} />
-              <span>Save Integration</span>
-            </button>
-          </div>
+        <div className="bg-white border rounded-xl shadow-sm p-6 space-y-6 text-gray-600">
+          <p>Configuration coming soon.</p>
         </div>
       </div>
     );
