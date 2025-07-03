@@ -80,8 +80,8 @@ const App: React.FC = () => {
   const automationTasks: AutomationTask[] = [
     {
       id: '1',
-      name: 'Keystone Catalog Sync',
-      type: 'catalog_sync',
+      name: 'Keystone Inventory Sync',
+      type: 'inventory_sync',
       status: 'running',
       progress: 65,
       nextRun: 'In 2 hours',
@@ -89,8 +89,8 @@ const App: React.FC = () => {
     },
     {
       id: '2',
-      name: 'CWR Price Update',
-      type: 'price_update', 
+      name: 'CWR Catalog Sync',
+      type: 'catalog_sync',
       status: 'scheduled',
       progress: 0,
       nextRun: 'In 45 minutes',
@@ -98,7 +98,7 @@ const App: React.FC = () => {
     },
     {
       id: '3',
-      name: 'Multi-Location Inventory',
+      name: 'Seawide Inventory Sync',
       type: 'inventory_sync',
       status: 'completed',
       progress: 100,
