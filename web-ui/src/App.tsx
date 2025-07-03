@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Database, 
-  Calendar, 
-  MapPin, 
-  FileText, 
+import {
+  Settings,
+  Database,
+  Calendar,
+  MapPin,
+  FileText,
   Activity,
   Server,
   Users,
@@ -14,7 +14,13 @@ import {
   Filter,
   Download,
   Upload,
-  RefreshCw
+  RefreshCw,
+  Key,
+  PlayCircle,
+  HardDrive,
+  Clock,
+  TestTube,
+  ArrowLeft
 } from 'lucide-react';
 import { listCatalog } from './api/keystone';
 
@@ -135,32 +141,123 @@ const App: React.FC = () => {
   };
 
   interface IntegrationAction {
-    id: number;
+    id: string;
     title: string;
     description: string;
     icon: React.ReactNode;
+    status?: string;
+    action: () => void;
   }
 
-  const getIntegrationActions = (): IntegrationAction[] => [
-    { id: 1, title: 'Set API Credentials', description: 'Configure API access', icon: <Settings size={20} /> },
-    { id: 2, title: 'Set FTP Credentials', description: 'FTP login details', icon: <Settings size={20} /> },
-    { id: 3, title: 'Configure Location Mapping', description: 'Map warehouse columns', icon: <MapPin size={20} /> },
-    { id: 4, title: 'Run Partial Inventory', description: 'Fetch incremental stock', icon: <RefreshCw size={20} /> },
-    { id: 5, title: 'Run Full Inventory via FTP (Secondary)', description: 'Download inventory via FTP', icon: <Download size={20} /> },
-    { id: 6, title: 'Run Full Inventory', description: 'Fetch entire catalog', icon: <Database size={20} /> },
-    { id: 7, title: 'Schedule Partial Inventory', description: 'Automate partial sync', icon: <Calendar size={20} /> },
-    { id: 8, title: 'Schedule Full Inventory', description: 'Automate full sync', icon: <Calendar size={20} /> },
-    { id: 9, title: 'RUN CATALOG', description: 'Fetch catalog data', icon: <Database size={20} /> },
-    { id: 10, title: 'Schedule Catalog', description: 'Automate catalog sync', icon: <Calendar size={20} /> },
-    { id: 11, title: 'Manage Catalog', description: 'View and delete catalog rows', icon: <FileText size={20} /> },
-    { id: 12, title: 'Upload Multi-Location Inventory', description: 'Convert inventory for Amazon', icon: <Upload size={20} /> },
-    { id: 13, title: 'Test Connection', description: 'Verify credentials', icon: <Server size={20} /> },
-    { id: 14, title: 'Back', description: 'Return to suppliers', icon: <Server size={20} /> },
-  ];
+  function getIntegrationActions(supplier: SupplierIntegration): IntegrationAction[] {
+    return [
+      {
+        id: 'api-credentials',
+        title: '1. Set API Credentials',
+        description: 'Configure API authentication credentials',
+        icon: <Key className="h-5 w-5" />,
+        status: 'configured',
+        action: () => console.log('Set API Credentials'),
+      },
+      {
+        id: 'ftp-credentials',
+        title: '2. Set FTP Credentials',
+        description: 'Configure FTP server connection details',
+        icon: <Server className="h-5 w-5" />,
+        status: 'configured',
+        action: () => console.log('Set FTP Credentials'),
+      },
+      {
+        id: 'location-mapping',
+        title: '3. Configure Location Mapping',
+        description: 'Map supplier locations to your warehouse locations',
+        icon: <MapPin className="h-5 w-5" />,
+        status: 'pending',
+        action: () => console.log('Configure Location Mapping'),
+      },
+      {
+        id: 'partial-inventory',
+        title: '4. Run Partial Inventory',
+        description: 'Execute partial inventory synchronization',
+        icon: <PlayCircle className="h-5 w-5" />,
+        action: () => console.log('Run Partial Inventory'),
+      },
+      {
+        id: 'full-inventory-ftp',
+        title: '5. Run Full Inventory via FTP (Secondary)',
+        description: 'Execute full inventory sync using FTP as secondary method',
+        icon: <HardDrive className="h-5 w-5" />,
+        action: () => console.log('Run Full Inventory via FTP'),
+      },
+      {
+        id: 'full-inventory',
+        title: '6. Run Full Inventory',
+        description: 'Execute complete inventory synchronization',
+        icon: <Database className="h-5 w-5" />,
+        action: () => console.log('Run Full Inventory'),
+      },
+      {
+        id: 'schedule-partial',
+        title: '7. Schedule Partial Inventory',
+        description: 'Set up automated partial inventory sync schedule',
+        icon: <Clock className="h-5 w-5" />,
+        action: () => console.log('Schedule Partial Inventory'),
+      },
+      {
+        id: 'schedule-full',
+        title: '8. Schedule Full Inventory',
+        description: 'Set up automated full inventory sync schedule',
+        icon: <Calendar className="h-5 w-5" />,
+        action: () => console.log('Schedule Full Inventory'),
+      },
+      {
+        id: 'run-catalog',
+        title: '9. RUN CATALOG',
+        description: 'Execute catalog synchronization immediately',
+        icon: <FileText className="h-5 w-5" />,
+        action: () => console.log('Run Catalog'),
+      },
+      {
+        id: 'schedule-catalog',
+        title: '10. Schedule Catalog',
+        description: 'Set up automated catalog sync schedule',
+        icon: <Calendar className="h-5 w-5" />,
+        action: () => console.log('Schedule Catalog'),
+      },
+      {
+        id: 'manage-catalog',
+        title: '11. Manage Catalog',
+        description: 'View and manage catalog data and mappings',
+        icon: <Settings className="h-5 w-5" />,
+        action: () => console.log('Manage Catalog'),
+      },
+      {
+        id: 'upload-multi-location',
+        title: '12. Upload Multi-Location Inventory',
+        description: 'Upload inventory data for multiple locations',
+        icon: <Upload className="h-5 w-5" />,
+        action: () => console.log('Upload Multi-Location Inventory'),
+      },
+      {
+        id: 'test-connection',
+        title: '13. Test Connection',
+        description: 'Verify connectivity and authentication',
+        icon: <TestTube className="h-5 w-5" />,
+        action: () => console.log('Test Connection'),
+      },
+      {
+        id: 'back',
+        title: '14. Back',
+        description: 'Return to supplier integrations list',
+        icon: <ArrowLeft className="h-5 w-5" />,
+        action: () => handleBackToSuppliers(),
+      },
+    ];
+  }
 
   const renderSupplierIntegrationDetails = () => {
     if (!selectedSupplier) return null;
-    const actions = getIntegrationActions();
+    const actions = getIntegrationActions(selectedSupplier);
     return (
       <div className="space-y-6">
         <div className="flex items-center space-x-2 cursor-pointer" onClick={handleBackToSuppliers}>
@@ -187,11 +284,11 @@ const App: React.FC = () => {
             <button
               key={action.id}
               className="flex items-start space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50"
-              onClick={() => action.id === 14 && handleBackToSuppliers()}
+              onClick={action.action}
             >
               <div className="p-2 bg-blue-50 rounded-lg">{action.icon}</div>
               <div className="text-left">
-                <p className="font-medium text-gray-900">{action.id}. {action.title}</p>
+                <p className="font-medium text-gray-900">{action.title}</p>
                 <p className="text-sm text-gray-500">{action.description}</p>
               </div>
             </button>
