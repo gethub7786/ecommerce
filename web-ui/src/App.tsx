@@ -78,6 +78,8 @@ const App: React.FC = () => {
   }, []);
 
   const [automationTasks, setAutomationTasks] = useState<AutomationTask[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierIntegration | null>(null);
+  const [showIntegrationDetails, setShowIntegrationDetails] = useState(false);
 
   useEffect(() => {
     const load = () => {
@@ -113,13 +115,90 @@ const App: React.FC = () => {
     switch (type) {
       case 'keystone':
         return '🔧';
-      case 'cwr': 
+      case 'cwr':
         return '⚡';
       case 'seawide':
         return '🌊';
       default:
         return '📦';
     }
+  };
+
+  const handleSupplierClick = (supplier: SupplierIntegration) => {
+    setSelectedSupplier(supplier);
+    setShowIntegrationDetails(true);
+  };
+
+  const handleBackToSuppliers = () => {
+    setShowIntegrationDetails(false);
+    setSelectedSupplier(null);
+  };
+
+  interface IntegrationAction {
+    id: number;
+    title: string;
+    description: string;
+    icon: React.ReactNode;
+  }
+
+  const getIntegrationActions = (): IntegrationAction[] => [
+    { id: 1, title: 'Set API Credentials', description: 'Configure API access', icon: <Settings size={20} /> },
+    { id: 2, title: 'Set FTP Credentials', description: 'FTP login details', icon: <Settings size={20} /> },
+    { id: 3, title: 'Configure Location Mapping', description: 'Map warehouse columns', icon: <MapPin size={20} /> },
+    { id: 4, title: 'Run Partial Inventory', description: 'Fetch incremental stock', icon: <RefreshCw size={20} /> },
+    { id: 5, title: 'Run Full Inventory via FTP (Secondary)', description: 'Download inventory via FTP', icon: <Download size={20} /> },
+    { id: 6, title: 'Run Full Inventory', description: 'Fetch entire catalog', icon: <Database size={20} /> },
+    { id: 7, title: 'Schedule Partial Inventory', description: 'Automate partial sync', icon: <Calendar size={20} /> },
+    { id: 8, title: 'Schedule Full Inventory', description: 'Automate full sync', icon: <Calendar size={20} /> },
+    { id: 9, title: 'RUN CATALOG', description: 'Fetch catalog data', icon: <Database size={20} /> },
+    { id: 10, title: 'Schedule Catalog', description: 'Automate catalog sync', icon: <Calendar size={20} /> },
+    { id: 11, title: 'Manage Catalog', description: 'View and delete catalog rows', icon: <FileText size={20} /> },
+    { id: 12, title: 'Upload Multi-Location Inventory', description: 'Convert inventory for Amazon', icon: <Upload size={20} /> },
+    { id: 13, title: 'Test Connection', description: 'Verify credentials', icon: <Server size={20} /> },
+    { id: 14, title: 'Back', description: 'Return to suppliers', icon: <Server size={20} /> },
+  ];
+
+  const renderSupplierIntegrationDetails = () => {
+    if (!selectedSupplier) return null;
+    const actions = getIntegrationActions();
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center space-x-2 cursor-pointer" onClick={handleBackToSuppliers}>
+          <span className="text-blue-600">&larr;</span>
+          <span className="text-sm text-blue-600">Back to suppliers</span>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900">{selectedSupplier.name}</h2>
+        <div className="p-4 bg-white rounded-lg border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600">Status</p>
+            <p className={`text-sm font-medium ${getStatusColor(selectedSupplier.status)}`}>{selectedSupplier.status}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Mapped SKUs</p>
+            <p className="text-sm font-medium text-gray-900">{selectedSupplier.itemCount}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">Locations</p>
+            <p className="text-sm font-medium text-gray-900">{selectedSupplier.locations}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {actions.map(action => (
+            <button
+              key={action.id}
+              className="flex items-start space-x-3 p-4 border rounded-lg bg-white hover:bg-gray-50"
+              onClick={() => action.id === 14 && handleBackToSuppliers()}
+            >
+              <div className="p-2 bg-blue-50 rounded-lg">{action.icon}</div>
+              <div className="text-left">
+                <p className="font-medium text-gray-900">{action.id}. {action.title}</p>
+                <p className="text-sm text-gray-500">{action.description}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const renderContent = () => {
@@ -276,53 +355,62 @@ const App: React.FC = () => {
     </div>
   );
 
-  const renderSuppliers = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Supplier Integrations</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-          <Upload size={16} />
-          <span>Add Integration</span>
-        </button>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {supplierIntegrations.map(supplier => (
-          <div key={supplier.id} className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <span className="text-3xl">{getSupplierIcon(supplier.type)}</span>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{supplier.type} Integration</p>
+  const renderSuppliers = () => {
+    if (showIntegrationDetails) {
+      return renderSupplierIntegrationDetails();
+    }
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Supplier Integrations</h2>
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+            <Upload size={16} />
+            <span>Add Integration</span>
+          </button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {supplierIntegrations.map(supplier => (
+            <div
+              key={supplier.id}
+              onClick={() => handleSupplierClick(supplier)}
+              className="cursor-pointer bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-3xl">{getSupplierIcon(supplier.type)}</span>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{supplier.name}</h3>
+                      <p className="text-sm text-gray-500 capitalize">{supplier.type} Integration</p>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(supplier.status)}`}>{supplier.status.charAt(0).toUpperCase() + supplier.status.slice(1)}</span>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Total SKUs:</span>
+                    <span className="text-sm font-medium text-gray-900">{supplier.itemCount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Locations:</span>
+                    <span className="text-sm font-medium text-gray-900">{supplier.locations}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Last Sync:</span>
+                    <span className="text-sm font-medium text-gray-900">{supplier.lastSync}</span>
                   </div>
                 </div>
-                <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(supplier.status)}`}>{supplier.status.charAt(0).toUpperCase() + supplier.status.slice(1)}</span>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Total SKUs:</span>
-                  <span className="text-sm font-medium text-gray-900">{supplier.itemCount.toLocaleString()}</span>
+                <div className="mt-6 flex space-x-2">
+                  <button className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">Configure</button>
+                  <button className="flex-1 px-3 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium">Sync Now</button>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Locations:</span>
-                  <span className="text-sm font-medium text-gray-900">{supplier.locations}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Last Sync:</span>
-                  <span className="text-sm font-medium text-gray-900">{supplier.lastSync}</span>
-                </div>
-              </div>
-              <div className="mt-6 flex space-x-2">
-                <button className="flex-1 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium">Configure</button>
-                <button className="flex-1 px-3 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-medium">Sync Now</button>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderCatalogManagement = () => (
     <div className="space-y-6">
