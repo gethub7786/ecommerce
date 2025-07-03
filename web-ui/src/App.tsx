@@ -183,6 +183,15 @@ const App: React.FC = () => {
     }
   };
 
+  const totalSuppliers = supplierIntegrations.length;
+  const activeTaskCount = automationTasks.filter(
+    (t) => t.status === 'running' || t.status === 'scheduled'
+  ).length;
+  const locationCount = supplierIntegrations.reduce(
+    (sum, s) => sum + s.locations,
+    0
+  );
+
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -190,7 +199,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Suppliers</p>
-              <p className="text-2xl font-bold text-gray-900">3</p>
+              <p className="text-2xl font-bold text-gray-900">{totalSuppliers}</p>
             </div>
             <div className="p-3 bg-blue-50 rounded-lg">
               <Server className="h-6 w-6 text-blue-600" />
@@ -212,7 +221,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Active Tasks</p>
-              <p className="text-2xl font-bold text-gray-900">2</p>
+              <p className="text-2xl font-bold text-gray-900">{activeTaskCount}</p>
             </div>
             <div className="p-3 bg-orange-50 rounded-lg">
               <Activity className="h-6 w-6 text-orange-600" />
@@ -223,7 +232,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Locations</p>
-              <p className="text-2xl font-bold text-gray-900">16</p>
+              <p className="text-2xl font-bold text-gray-900">{locationCount}</p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
               <MapPin className="h-6 w-6 text-purple-600" />
