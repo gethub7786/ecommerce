@@ -76,24 +76,3 @@ python inventory_processor.py \
 
 Both scripts rely only on the Python standard library and run in restricted environments.
 
-## Web UI
-
-A React + TypeScript frontend lives in `web-ui`. It uses Material UI and talks to the
-Python logic through a small FastAPI server.
-
-### Development
-
-```bash
-cd web-ui && npm install && npm run dev
-```
-
-### Production
-
-```bash
-cd web-ui && npm run build
-cd ..
-# The FastAPI server serves the built frontend and exposes supplier APIs
-python -m api
-```
-
-Then browse to `http://localhost:8000`.
