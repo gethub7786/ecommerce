@@ -235,6 +235,15 @@ const App: React.FC = () => {
     setShowAddIntegration(true);
   };
 
+  const totalSkus = supplierIntegrations.reduce(
+    (sum, s) => sum + s.itemCount,
+    0
+  );
+  const totalLocations = supplierIntegrations.reduce(
+    (sum, s) => sum + s.locations,
+    0
+  );
+
   const handleSelectPrebuiltIntegration = (integration: PrebuiltIntegration) => {
     setSelectedPrebuiltIntegration(integration);
     setShowConfigureIntegration(true);
@@ -266,7 +275,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total SKUs</p>
-              <p className="text-2xl font-bold text-gray-900">36,470</p>
+              <p className="text-2xl font-bold text-gray-900">{totalSkus.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-emerald-50 rounded-lg">
               <Database className="h-6 w-6 text-emerald-600" />
@@ -288,7 +297,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Locations</p>
-              <p className="text-2xl font-bold text-gray-900">16</p>
+              <p className="text-2xl font-bold text-gray-900">{totalLocations}</p>
             </div>
             <div className="p-3 bg-purple-50 rounded-lg">
               <MapPin className="h-6 w-6 text-purple-600" />
