@@ -78,7 +78,7 @@ Both scripts rely only on the Python standard library and run in restricted envi
 
 
 ## Web UI
-A simple Material UI dashboard is provided in `web-ui`. After installing Node.js
+A Tailwind/React dashboard lives in `web-ui`. After installing Node.js
 and dependencies run:
 
 ```bash
