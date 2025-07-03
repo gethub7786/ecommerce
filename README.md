@@ -76,3 +76,21 @@ python inventory_processor.py \
 
 Both scripts rely only on the Python standard library and run in restricted environments.
 
+
+## Web UI
+A simple Material UI dashboard is provided in `web-ui`. After installing Node.js
+and dependencies run:
+
+```bash
+npm install
+npm run dev
+```
+
+The backend API uses Flask. Launch it with:
+
+```bash
+python -m backend
+```
+
+The UI talks to this API to manage Keystone credentials and trigger inventory
+actions.
