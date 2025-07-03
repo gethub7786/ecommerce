@@ -117,7 +117,7 @@ def show_supplier_menu(key):
         if hasattr(supplier, 'fetch_inventory_full'):
             print(f"{idx}. Schedule Full Inventory"); opts[str(idx)] = 'sch_inv_full'; idx += 1
         if hasattr(supplier, 'fetch_catalog'):
-            label = 'Run catalog from ftp' if isinstance(supplier, CwrSupplier) else 'Fetch Catalog Now'
+            label = 'Run catalog from ftp' if isinstance(supplier, CwrSupplier) else 'RUN CATALOG'
             print(f"{idx}. {label}"); opts[str(idx)] = 'cat'; idx += 1
             print(f"{idx}. Schedule Catalog"); opts[str(idx)] = 'sch_cat'; idx += 1
             print(f"{idx}. Manage Catalog"); opts[str(idx)] = 'manage_cat'; idx += 1
