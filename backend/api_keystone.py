@@ -1,6 +1,8 @@
 from flask import Flask, request
 import uuid
 import time
+import json
+import os
 from automation_tool.keystone import KeystoneSupplier
 from automation_tool.cwr import CwrSupplier
 from automation_tool.seawide import SeawideSupplier
@@ -8,6 +10,27 @@ from automation_tool import catalog
 from datetime import datetime
 
 app = Flask(__name__)
+
+# store credentials separate from automation_tool data
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+os.makedirs(DATA_DIR, exist_ok=True)
+CRED_FILE = os.path.join(DATA_DIR, 'keystone_creds.json')
+
+def load_creds() -> dict:
+    if os.path.exists(CRED_FILE):
+        try:
+            with open(CRED_FILE, 'r') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+def save_creds(data: dict) -> None:
+    with open(CRED_FILE, 'w') as f:
+        json.dump(data, f)
+
+cred_store = load_creds()
+
 ks = KeystoneSupplier()
 cs = CwrSupplier()
 sw = SeawideSupplier()
@@ -36,17 +59,27 @@ def _finish_task(task: dict, ok: bool = True) -> None:
 @app.post('/keystone/credentials')
 def set_credentials():
     data = request.json or {}
-    ks.set_credential('account_number', data.get('account_number', ''))
-    ks.set_credential('security_key', data.get('security_key', ''))
+    account = data.get('account_number', '')
+    key = data.get('security_key', '')
+    cred_store['account_number'] = account
+    cred_store['security_key'] = key
+    save_creds(cred_store)
+    ks.set_credential('account_number', account)
+    ks.set_credential('security_key', key)
     return {'status': 'saved'}
 
 @app.post('/keystone/ftp')
 def set_ftp():
     data = request.json or {}
-    ks.set_credential('ftp_user', data.get('user', ''))
-    ks.set_credential('ftp_password', data.get('password', ''))
-    ks.set_credential('ftp_remote_dir', data.get('remote_dir', '/'))
-    ks.set_credential('remote_update_file', data.get('remote_file', 'Inventory.csv'))
+    cred_store['ftp_user'] = data.get('user', '')
+    cred_store['ftp_password'] = data.get('password', '')
+    cred_store['ftp_remote_dir'] = data.get('remote_dir', '/')
+    cred_store['remote_update_file'] = data.get('remote_file', 'Inventory.csv')
+    save_creds(cred_store)
+    ks.set_credential('ftp_user', cred_store['ftp_user'])
+    ks.set_credential('ftp_password', cred_store['ftp_password'])
+    ks.set_credential('ftp_remote_dir', cred_store['ftp_remote_dir'])
+    ks.set_credential('remote_update_file', cred_store['remote_update_file'])
     return {'status': 'saved'}
 
 @app.post('/keystone/location-map')
