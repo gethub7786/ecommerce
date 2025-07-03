@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 from automation_tool.keystone import KeystoneSupplier
+from automation_tool import catalog
 
 app = Flask(__name__)
 ks = KeystoneSupplier()
@@ -58,6 +59,23 @@ def run_catalog():
 @app.post('/keystone/schedule/catalog')
 def sched_catalog():
     return {'status': 'scheduled'}
+
+@app.get('/keystone/catalog')
+def list_catalog():
+    rows = catalog.load_rows(ks.name)
+    return {'rows': rows}
+
+@app.delete('/keystone/catalog/<sku>')
+def delete_sku(sku):
+    catalog.delete_sku(ks.name, sku)
+    return {'status': 'deleted'}
+
+@app.post('/keystone/catalog/delete-file')
+def delete_file():
+    path = request.json.get('path') if request.json else ''
+    if path:
+        catalog.delete_from_file(ks.name, path)
+    return {'status': 'done'}
 
 @app.get('/keystone/upload-mli')
 def upload_mli():
