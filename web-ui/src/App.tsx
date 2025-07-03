@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   Database,
@@ -30,6 +30,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { fetchSupplierStatus, fetchTasks } from './api/keystone';
 
 interface NavItem {
   id: string;
@@ -97,65 +98,25 @@ const App: React.FC = () => {
     { id: 'monitoring', label: 'System Monitoring', icon: <Activity size={20} /> }
   ];
 
-  const supplierIntegrations: SupplierIntegration[] = [
-    {
-      id: '1',
-      name: 'Keystone Automotive',
-      type: 'keystone',
-      status: 'active',
-      lastSync: '2 hours ago',
-      itemCount: 15420,
-      locations: 8
-    },
-    {
-      id: '2',
-      name: 'CWR Electronics',
-      type: 'cwr',
-      status: 'syncing',
-      lastSync: '15 minutes ago',
-      itemCount: 8750,
-      locations: 3
-    },
-    {
-      id: '3',
-      name: 'Seawide Distribution',
-      type: 'seawide',
-      status: 'active',
-      lastSync: '30 minutes ago',
-      itemCount: 12300,
-      locations: 5
-    }
-  ];
+  const [supplierIntegrations, setSupplierIntegrations] =
+    useState<SupplierIntegration[]>([])
 
-  const automationTasks: AutomationTask[] = [
-    {
-      id: '1',
-      name: 'Keystone Catalog Sync',
-      type: 'catalog_sync',
-      status: 'running',
-      progress: 65,
-      nextRun: 'In 2 hours',
-      supplier: 'Keystone'
-    },
-    {
-      id: '2',
-      name: 'CWR Price Update',
-      type: 'price_update',
-      status: 'scheduled',
-      progress: 0,
-      nextRun: 'In 45 minutes',
-      supplier: 'CWR'
-    },
-    {
-      id: '3',
-      name: 'Multi-Location Inventory',
-      type: 'inventory_sync',
-      status: 'completed',
-      progress: 100,
-      nextRun: 'In 6 hours',
-      supplier: 'Seawide'
-    }
-  ];
+  const [automationTasks, setAutomationTasks] = useState<AutomationTask[]>([])
+
+  useEffect(() => {
+    fetchSupplierStatus().then(res => {
+      setSupplierIntegrations(res.data.suppliers || [])
+    })
+    fetchTasks().then(res => {
+      setAutomationTasks(res.data.tasks || [])
+    })
+    const id = setInterval(() => {
+      fetchSupplierStatus().then(r => setSupplierIntegrations(r.data.suppliers || []))
+      fetchTasks().then(r => setAutomationTasks(r.data.tasks || []))
+    }, 5000)
+    return () => clearInterval(id)
+  }, [])
+
 
   const prebuiltIntegrations: PrebuiltIntegration[] = [
     {

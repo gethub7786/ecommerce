@@ -34,3 +34,11 @@ export function runFullInventory() { return axios.get('/keystone/inventory/full'
 export function runFTPFull() { return axios.get('/keystone/inventory/ftp-full') }
 export function runCatalog() { return axios.get('/keystone/catalog/run') }
 export function testConnection() { return axios.get('/keystone/test') }
+
+export function fetchSupplierStatus() {
+  return axios.get('/suppliers/status')
+}
+
+export function fetchTasks() {
+  return axios.get('/tasks')
+}
