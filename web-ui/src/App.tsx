@@ -77,35 +77,19 @@ const App: React.FC = () => {
       .catch(() => setSupplierIntegrations([]));
   }, []);
 
-  const automationTasks: AutomationTask[] = [
-    {
-      id: '1',
-      name: 'Keystone Inventory Sync',
-      type: 'inventory_sync',
-      status: 'running',
-      progress: 65,
-      nextRun: 'In 2 hours',
-      supplier: 'Keystone'
-    },
-    {
-      id: '2',
-      name: 'CWR Catalog Sync',
-      type: 'catalog_sync',
-      status: 'scheduled',
-      progress: 0,
-      nextRun: 'In 45 minutes',
-      supplier: 'CWR'
-    },
-    {
-      id: '3',
-      name: 'Seawide Inventory Sync',
-      type: 'inventory_sync',
-      status: 'completed',
-      progress: 100,
-      nextRun: 'In 6 hours',
-      supplier: 'Seawide'
-    }
-  ];
+  const [automationTasks, setAutomationTasks] = useState<AutomationTask[]>([]);
+
+  useEffect(() => {
+    const load = () => {
+      fetch('/tasks')
+        .then(res => res.json())
+        .then(data => setAutomationTasks(data.tasks || []))
+        .catch(() => setAutomationTasks([]));
+    };
+    load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -255,6 +239,9 @@ const App: React.FC = () => {
         </div>
         <div className="p-6">
           <div className="space-y-4">
+            {automationTasks.length === 0 && (
+              <p className="text-sm text-gray-600">No tasks</p>
+            )}
             {automationTasks.map(task => (
               <div key={task.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                 <div className="flex items-center space-x-4">
