@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Settings, 
   Database, 
@@ -16,6 +16,7 @@ import {
   Upload,
   RefreshCw
 } from 'lucide-react';
+import { listCatalog } from './api/keystone';
 
 interface NavItem {
   id: string;
@@ -46,6 +47,16 @@ interface AutomationTask {
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
+  const [skuCount, setSkuCount] = useState(0);
+
+  useEffect(() => {
+    listCatalog()
+      .then(res => {
+        const rows = res.data.rows || [];
+        setSkuCount(rows.length);
+      })
+      .catch(() => setSkuCount(0));
+  }, []);
 
   const navigationItems: NavItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <BarChart3 size={20} /> },
@@ -190,7 +201,7 @@ const App: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total SKUs</p>
-              <p className="text-2xl font-bold text-gray-900">36,470</p>
+              <p className="text-2xl font-bold text-gray-900">{skuCount.toLocaleString()}</p>
             </div>
             <div className="p-3 bg-emerald-50 rounded-lg">
               <Database className="h-6 w-6 text-emerald-600" />
