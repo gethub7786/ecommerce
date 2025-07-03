@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Tabs, Tab } from '@mui/material'
+import { Button } from '@mui/material'
 import CredentialForm from './CredentialForm'
 import FTPForm from './FTPForm'
 import LocationMapForm from './LocationMapForm'
@@ -17,44 +17,113 @@ import {
   uploadMLI
 } from '../api/keystone'
 
+import {
+  Key,
+  HardDrive,
+  MapPin,
+  Play,
+  PlayCircle,
+  Wifi,
+  Clock,
+  FileText,
+  Upload,
+  CheckCircle,
+  ArrowLeft
+} from 'lucide-react'
+
 export default function KeystonePage({ onBack }: { onBack?: () => void }) {
-  const [action, setAction] = useState(0)
+  const [tab, setTab] = useState<number>(0)
+
+  const tabs = [
+    {
+      label: 'Set API Credential',
+      icon: <Key size={18} />,
+      content: <CredentialForm />
+    },
+    {
+      label: 'Set FTP Credentials',
+      icon: <HardDrive size={18} />,
+      content: <FTPForm />
+    },
+    {
+      label: 'Configure Location Mapping',
+      icon: <MapPin size={18} />,
+      content: <LocationMapForm />
+    },
+    {
+      label: 'Run Partial Inventory',
+      icon: <Play size={18} />,
+      content: <Button variant="contained" onClick={runPartialInventory}>Run</Button>
+    },
+    {
+      label: 'Run Full Inventory',
+      icon: <PlayCircle size={18} />,
+      content: <Button variant="contained" onClick={runFullInventory}>Run</Button>
+    },
+    {
+      label: 'Run Full Inventory via FTP',
+      icon: <Wifi size={18} />,
+      content: <Button variant="contained" onClick={runFTPFull}>Run</Button>
+    },
+    {
+      label: 'Schedule Partial Inventory',
+      icon: <Clock size={18} />,
+      content: <ScheduleForm onSchedule={schedulePartial} label="Schedule" />
+    },
+    {
+      label: 'Schedule Full Inventory',
+      icon: <Clock size={18} />,
+      content: <ScheduleForm onSchedule={scheduleFull} label="Schedule" />
+    },
+    {
+      label: 'Run Catalog',
+      icon: <FileText size={18} />,
+      content: <Button variant="contained" onClick={runCatalog}>Run</Button>
+    },
+    {
+      label: 'Schedule Catalog',
+      icon: <Clock size={18} />,
+      content: <ScheduleForm onSchedule={scheduleCatalog} label="Schedule" />
+    },
+    {
+      label: 'Manage Catalog',
+      icon: <CheckCircle size={18} />,
+      content: <CatalogManager />
+    },
+    {
+      label: 'Upload Multi-Location Inventory',
+      icon: <Upload size={18} />,
+      content: <Button variant="contained" onClick={uploadMLI}>Run</Button>
+    },
+    {
+      label: 'Test Connection',
+      icon: <CheckCircle size={18} />,
+      content: <Button variant="contained" onClick={testConnection}>Test</Button>
+    },
+    {
+      label: 'Back',
+      icon: <ArrowLeft size={18} />,
+      content: <Button variant="outlined" onClick={onBack}>Back to suppliers</Button>
+    }
+  ]
+
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Tabs orientation="vertical" value={action} onChange={(_,v)=>setAction(v)}>
-        <Tab label="Set API Credential" />
-        <Tab label="Set FTP Credentials" />
-        <Tab label="Configure Location Mapping" />
-        <Tab label="Run Partial Inventory" />
-        <Tab label="Run Full Inventory" />
-        <Tab label="Run Full Inventory via FTP" />
-        <Tab label="Schedule Partial Inventory" />
-        <Tab label="Schedule Full Inventory" />
-        <Tab label="RUN CATALOG" />
-        <Tab label="Schedule Catalog" />
-        <Tab label="Manage Catalog" />
-        <Tab label="Upload Multi-Location Inventory" />
-        <Tab label="Test Connection" />
-        <Tab label="Back" />
-      </Tabs>
-      <Box sx={{ flexGrow:1, p:2 }}>
-        {action===0 && <CredentialForm />}
-        {action===1 && <FTPForm />}
-        {action===2 && <LocationMapForm />}
-        {action===3 && <button onClick={runPartialInventory}>Run</button>}
-        {action===4 && <button onClick={runFullInventory}>Run</button>}
-        {action===5 && <button onClick={runFTPFull}>Run</button>}
-        {action===6 && <ScheduleForm onSchedule={schedulePartial} label="Schedule" />}
-        {action===7 && <ScheduleForm onSchedule={scheduleFull} label="Schedule" />}
-        {action===8 && <button onClick={runCatalog}>Run</button>}
-        {action===9 && <ScheduleForm onSchedule={scheduleCatalog} label="Schedule" />}
-        {action===10 && <CatalogManager />}
-        {action===11 && <button onClick={uploadMLI}>Run</button>}
-        {action===12 && <button onClick={testConnection}>Test</button>}
-        {action===13 && (
-          <button onClick={onBack} style={{marginTop:8}}>Back to suppliers</button>
-        )}
-      </Box>
-    </Box>
+    <div className="flex">
+      <div className="w-64 bg-white border-r border-gray-200">
+        {tabs.map((t, idx) => (
+          <button
+            key={idx}
+            onClick={() => setTab(idx)}
+            className={`w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-colors hover:bg-blue-50 ${
+              tab === idx ? 'bg-blue-100 text-blue-700' : 'text-gray-700'
+            }`}
+          >
+            {t.icon}
+            <span>{t.label}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 p-6 bg-gray-50 min-h-screen">{tabs[tab].content}</div>
+    </div>
   )
 }
