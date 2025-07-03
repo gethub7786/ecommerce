@@ -23,7 +23,8 @@ suppliers = {
     "seawide": SeawideSupplier(),
 }
 
-dist_dir = Path(__file__).parent / "web-ui" / "dist"
+# Serve the built React app from ../web-ui/dist if it exists
+dist_dir = Path(__file__).resolve().parent.parent / "web-ui" / "dist"
 if dist_dir.exists():
     app.mount("/", StaticFiles(directory=dist_dir, html=True), name="static")
 
