@@ -75,3 +75,4 @@ python inventory_processor.py \
 `--since` should be the UNIX timestamp representing the last update time. Add `--inventory-only` to produce an ohtime feed. `--mapping` must be a CSV file with columns `SKU` and `AMAZON SKU`.
 
 Both scripts rely only on the Python standard library and run in restricted environments.
+\n## Web UI\n\nA simple React/TypeScript dashboard lives in `web-ui`. Run it with:\n\n```bash\ncd web-ui && npm install && npm run dev\n```\n\nThis launches a browser window showing mock supplier buttons. Use it as a starting point for a web interface on top of the Python tools.
