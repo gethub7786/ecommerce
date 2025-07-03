@@ -58,6 +58,12 @@ If you encounter an ``ImportError`` mentioning ``suppliers`` when launching the
 tool, make sure you are using the current package layout and run the command
 from the repository root as shown above.
 
+To use the graphical interface built with **PyQt6** run:
+
+```bash
+python -m automation_tool.gui
+```
+
 From the menu select a supplier, add credentials (API keys, FTP details, etc.) and optionally schedule recurring inventory fetches.  Keystone, CWR and Seawide offer both update and full inventory downloads which can also be scheduled.
 For each supplier you may test the connection and schedule catalog downloads at intervals of **5 minutes**, **15 minutes**, **30 minutes**, **45 minutes**, **1 hour**, **1 day**, **2 days** or **1 week**. Catalog entries can later be removed from the "Manage Catalog" option.
 
