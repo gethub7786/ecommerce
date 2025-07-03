@@ -54,7 +54,37 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [searchQuery, setSearchQuery] = useState('');
   const [skuCount, setSkuCount] = useState(0);
-  const [supplierIntegrations, setSupplierIntegrations] = useState<SupplierIntegration[]>([]);
+  const defaultSuppliers: SupplierIntegration[] = [
+    {
+      id: 'keystone',
+      name: 'Keystone Automotive',
+      type: 'keystone',
+      status: 'inactive',
+      lastSync: '-',
+      itemCount: 0,
+      locations: 0,
+    },
+    {
+      id: 'cwr',
+      name: 'CWR Distribution',
+      type: 'cwr',
+      status: 'inactive',
+      lastSync: '-',
+      itemCount: 0,
+      locations: 0,
+    },
+    {
+      id: 'seawide',
+      name: 'Seawide Distribution',
+      type: 'seawide',
+      status: 'inactive',
+      lastSync: '-',
+      itemCount: 0,
+      locations: 0,
+    },
+  ];
+
+  const [supplierIntegrations, setSupplierIntegrations] = useState<SupplierIntegration[]>(defaultSuppliers);
 
   useEffect(() => {
     listCatalog()
@@ -79,8 +109,8 @@ const App: React.FC = () => {
   useEffect(() => {
     fetch('/suppliers/status')
       .then(res => res.json())
-      .then(data => setSupplierIntegrations(data.suppliers || []))
-      .catch(() => setSupplierIntegrations([]));
+      .then(data => setSupplierIntegrations(data.suppliers || defaultSuppliers))
+      .catch(() => setSupplierIntegrations(defaultSuppliers));
   }, []);
 
   const [automationTasks, setAutomationTasks] = useState<AutomationTask[]>([]);
