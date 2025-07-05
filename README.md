@@ -2,6 +2,20 @@
 
 This repository contains utilities for managing inventory data and simple supplier integrations.
 
+## Requirements
+
+* Python 3.10 or newer
+* `Flask` for the backend API
+* `paramiko` when using SFTP features
+
+Install the Python packages with:
+
+```bash
+pip install Flask paramiko
+```
+
+Node.js is required to run the React dashboard located under `web-ui`.
+
 ## Automation Tool
 
 `automation_tool` provides a console interface for managing supplier credentials and scheduling inventory updates.  Each supplier module contains logic to retrieve inventory using the stored credentials.  The supplier implementations live in `automation_tool/keystone.py`, `automation_tool/cwr.py`, and `automation_tool/seawide.py`:
@@ -88,7 +102,7 @@ npm run dev
 
 The Location Mapping form requests each inventory column and its Amazon supply source ID. Scheduling forms include a minutes field so jobs can be triggered at custom intervals.
 
-The backend API uses Flask. Launch it with:
+The backend API uses Flask and runs on port 5000 by default. Launch it with:
 
 ```bash
 python -m backend
@@ -96,3 +110,13 @@ python -m backend
 
 The UI talks to this API to manage Keystone credentials and trigger inventory
 actions.
+
+## Running Tests
+
+The repository includes a small suite of unit tests. Run them with:
+
+```bash
+pytest -q
+```
+
+Tests cover SKU mapping and conversion logic for Amazon multi-location feeds.
