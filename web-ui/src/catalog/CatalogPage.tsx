@@ -21,19 +21,28 @@ export default function CatalogPage(){
   const [filtersLoading, setFiltersLoading] = useState(false)
 
   useEffect(()=>{
-    Promise.all([
+    Promise.allSettled([
       fetchKeystoneOverview(),
       fetchSeawideOverview()
-    ]).then(([k,s])=>{
-      setOverview([...(k.data.overview||[]), ...(s.data.overview||[])]);
+    ]).then(results=>{
+      const overviews = results
+        .filter(r=>r.status==='fulfilled' && r.value && r.value.data && r.value.data.overview)
+        .flatMap(r=>(r.status==='fulfilled' ? r.value.data.overview||[] : []))
+      setOverview(overviews)
     })
     setFiltersLoading(true)
-    Promise.all([
+    Promise.allSettled([
       fetchKeystoneFilters(),
       fetchSeawideFilters()
-    ]).then(([k,s])=>{
-      setBrands([...(k.data.brands||[]), ...(s.data.brands||[])]);
-      setSuppliers([...(k.data.suppliers||[]), ...(s.data.suppliers||[])]);
+    ]).then(results=>{
+      const allBrands = results
+        .filter(r=>r.status==='fulfilled' && r.value && r.value.data && r.value.data.brands)
+        .flatMap(r=>(r.status==='fulfilled' ? r.value.data.brands||[] : []))
+      const allSuppliers = results
+        .filter(r=>r.status==='fulfilled' && r.value && r.value.data && r.value.data.suppliers)
+        .flatMap(r=>(r.status==='fulfilled' ? r.value.data.suppliers||[] : []))
+      setBrands(allBrands)
+      setSuppliers(allSuppliers)
     }).finally(()=>setFiltersLoading(false))
     load(0)
   },[])
@@ -66,19 +75,28 @@ export default function CatalogPage(){
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Catalog Overview</h2>
         <button onClick={()=>{
-          Promise.all([
+          Promise.allSettled([
             fetchKeystoneOverview(),
             fetchSeawideOverview()
-          ]).then(([k,s])=>{
-            setOverview([...(k.data.overview||[]), ...(s.data.overview||[])]);
+          ]).then(results=>{
+            const overviews = results
+              .filter(r=>r.status==='fulfilled' && r.value && r.value.data && r.value.data.overview)
+              .flatMap(r=>(r.status==='fulfilled' ? r.value.data.overview||[] : []))
+            setOverview(overviews)
           })
           setFiltersLoading(true)
-          Promise.all([
+          Promise.allSettled([
             fetchKeystoneFilters(),
             fetchSeawideFilters()
-          ]).then(([k,s])=>{
-            setBrands([...(k.data.brands||[]), ...(s.data.brands||[])]);
-            setSuppliers([...(k.data.suppliers||[]), ...(s.data.suppliers||[])]);
+          ]).then(results=>{
+            const allBrands = results
+              .filter(r=>r.status==='fulfilled' && r.value && r.value.data && r.value.data.brands)
+              .flatMap(r=>(r.status==='fulfilled' ? r.value.data.brands||[] : []))
+            const allSuppliers = results
+              .filter(r=>r.status==='fulfilled' && r.value && r.value.data && r.value.data.suppliers)
+              .flatMap(r=>(r.status==='fulfilled' ? r.value.data.suppliers||[] : []))
+            setBrands(allBrands)
+            setSuppliers(allSuppliers)
           }).finally(()=>setFiltersLoading(false))
           load(0)
         }} className="flex items-center gap-2 rounded bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"><RefreshCcw className="h-4 w-4"/> Refresh</button>
